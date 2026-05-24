@@ -121,7 +121,9 @@ function App() {
               ? s.status === "SUCCEEDED"
                 ? `Scraped ${s.itemCount} tenders — importing to database…`
                 : `Scraper ended: ${s.status}`
-              : `Running… ${s.itemCount ?? 0} tenders collected so far`,
+              : s.itemCount > 0
+                ? `Running… ${s.itemCount} tenders collected so far`
+                : `Running… discovering tender pages (takes about 30-45 seconds to start collecting)…`,
           }));
           if (done) {
             clearInterval(poll);

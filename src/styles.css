@@ -379,13 +379,15 @@ input, select { font: inherit; }
 
 /* ── Table ─────────────────────────────────────────────────────────────────── */
 .tableWrap {
-  overflow-x: auto;
+  overflow: auto;
+  max-height: 60vh;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--bg2);
+  position: relative;
 }
 table { width: 100%; border-collapse: collapse; min-width: 900px; }
-thead { position: sticky; top: 64px; z-index: 10; }
+thead { position: sticky; top: 0; z-index: 10; }
 
 th {
   padding: 13px 14px;
