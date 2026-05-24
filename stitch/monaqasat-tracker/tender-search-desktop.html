@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tender Search - Monaqasat Tracker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-primary": "#3c2f00",
+                "background": "#051424",
+                "surface-container-high": "#1c2b3c",
+                "surface": "#051424",
+                "on-secondary": "#263143",
+                "on-primary-fixed": "#241a00",
+                "on-tertiary-container": "#3d455a",
+                "surface-container-low": "#0d1c2d",
+                "on-secondary-fixed-variant": "#3c475a",
+                "on-tertiary-fixed": "#131b2e",
+                "tertiary": "#c6cee8",
+                "on-secondary-container": "#aeb9d0",
+                "inverse-on-surface": "#233143",
+                "on-surface-variant": "#d0c5af",
+                "on-primary-container": "#554300",
+                "surface-container-highest": "#273647",
+                "secondary-fixed": "#d8e3fb",
+                "primary-fixed": "#ffe088",
+                "on-tertiary-fixed-variant": "#3f465c",
+                "on-error": "#690005",
+                "surface-container": "#122131",
+                "surface-variant": "#273647",
+                "inverse-surface": "#d4e4fa",
+                "tertiary-fixed": "#dae2fd",
+                "error": "#ffb4ab",
+                "outline": "#99907c",
+                "primary": "#f2ca50",
+                "error-container": "#93000a",
+                "surface-dim": "#051424",
+                "surface-tint": "#e9c349",
+                "inverse-primary": "#735c00",
+                "secondary-fixed-dim": "#bcc7de",
+                "surface-container-lowest": "#010f1f",
+                "on-surface": "#d4e4fa",
+                "tertiary-container": "#abb2cc",
+                "surface-bright": "#2c3a4c",
+                "on-primary-fixed-variant": "#574500",
+                "primary-fixed-dim": "#e9c349",
+                "primary-container": "#d4af37",
+                "secondary-container": "#3e495d",
+                "on-secondary-fixed": "#111c2d",
+                "secondary": "#bcc7de",
+                "on-error-container": "#ffdad6",
+                "outline-variant": "#4d4635",
+                "tertiary-fixed-dim": "#bec6e0",
+                "on-tertiary": "#283044",
+                "on-background": "#d4e4fa"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "spacing": {
+                "margin-mobile": "1rem",
+                "lg": "1.5rem",
+                "margin-desktop": "2rem",
+                "gutter": "1rem",
+                "xs": "0.25rem",
+                "xl": "2rem",
+                "md": "1rem",
+                "base": "4px",
+                "sm": "0.5rem",
+                "max-width": "1440px"
+            },
+            "fontFamily": {
+                "title-lg": ["Inter"],
+                "headline-lg-mobile": ["Inter"],
+                "label-sm": ["Inter"],
+                "headline-sm": ["Inter"],
+                "headline-md": ["Inter"],
+                "body-md": ["Inter"],
+                "headline-lg": ["Inter"],
+                "label-md": ["Inter"],
+                "display-lg": ["Inter"],
+                "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                "title-lg": ["18px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                "headline-lg-mobile": ["22px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                "headline-sm": ["20px", {"lineHeight": "28px", "letterSpacing": "0em", "fontWeight": "600"}],
+                "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                "headline-lg": ["28px", {"lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "display-lg": ["36px", {"lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.01em", "fontWeight": "400"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background-color: #051424;
+            font-family: 'Inter', sans-serif;
+            color: #d4e4fa;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #051424;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #273647;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="overflow-hidden">
+<!-- TopNavBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin-desktop h-16 bg-surface border-b border-outline-variant">
+<div class="flex items-center gap-xl">
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">Monaqasat Tracker</span>
+<nav class="hidden md:flex gap-md">
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">Analytics</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-on-surface transition-colors" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-md flex-1 max-w-2xl px-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg pl-10 pr-4 py-2 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary transition-all" placeholder="Search by Tender ID or Keyword..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-all active:scale-95">
+<span class="material-symbols-outlined text-primary">language</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-all active:scale-95 relative">
+<span class="material-symbols-outlined text-primary">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<div class="flex items-center gap-sm cursor-pointer ml-md p-1 pr-3 hover:bg-surface-container-high rounded-full transition-all">
+<span class="material-symbols-outlined text-primary text-3xl">account_circle</span>
+<div class="hidden lg:block text-left">
+<p class="font-label-md text-label-md text-on-surface leading-tight">Ahmed Al-Thani</p>
+<p class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Procurement Office</p>
+</div>
+</div>
+</div>
+</header>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-16 h-[calc(100vh-64px)] w-[280px] bg-surface-container-low border-r border-outline-variant flex flex-col py-md px-sm space-y-xs overflow-y-auto custom-scrollbar">
+<div class="px-md mb-md">
+<h2 class="font-title-lg text-title-lg text-primary">Procurement Intelligence</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant">State of Qatar</p>
+</div>
+<div class="space-y-1">
+<a class="flex items-center gap-md px-md py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-md px-md py-3 bg-secondary-container text-on-secondary-container font-semibold rounded-lg" href="#">
+<span class="material-symbols-outlined">search_check</span>
+<span class="font-label-md text-label-md">Tender Search</span>
+</a>
+<a class="flex items-center gap-md px-md py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">assignment_turned_in</span>
+<span class="font-label-md text-label-md">Awarded Contracts</span>
+</a>
+<a class="flex items-center gap-md px-md py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">domain</span>
+<span class="font-label-md text-label-md">Entity Insights</span>
+</a>
+</div>
+<div class="mt-xl px-md">
+<button class="w-full bg-primary-container text-on-primary-fixed hover:brightness-110 py-3 px-md rounded-lg flex items-center justify-center gap-sm font-label-md transition-all active:scale-95 shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-sm">add</span>
+                New Analysis
+            </button>
+</div>
+<div class="mt-auto space-y-1">
+<a class="flex items-center gap-md px-md py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-md px-md py-3 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[280px] mt-16 p-margin-desktop h-[calc(100vh-64px)] overflow-y-auto custom-scrollbar bg-background">
+<!-- Filters Header -->
+<section class="mb-xl bg-surface-container rounded-xl p-md border border-outline-variant flex flex-wrap items-end gap-md">
+<div class="flex-1 min-w-[200px]">
+<label class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Entity</label>
+<select class="w-full bg-surface-container-low border border-outline-variant rounded px-3 py-2 font-body-md text-on-surface focus:border-primary">
+<option>All Entities</option>
+<option>Ashghal (Public Works Authority)</option>
+<option>Kahramaa</option>
+<option>Ministry of Transport</option>
+</select>
+</div>
+<div class="flex-1 min-w-[200px]">
+<label class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Procurement Method</label>
+<select class="w-full bg-surface-container-low border border-outline-variant rounded px-3 py-2 font-body-md text-on-surface focus:border-primary">
+<option>All Methods</option>
+<option>Public Tender</option>
+<option>Direct Assignment</option>
+<option>Limited Tender</option>
+</select>
+</div>
+<div class="flex-1 min-w-[200px]">
+<label class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Date Range</label>
+<div class="flex items-center bg-surface-container-low border border-outline-variant rounded px-3 py-2">
+<input class="bg-transparent border-none p-0 text-on-surface font-body-md focus:ring-0" type="date"/>
+<span class="mx-2 text-on-surface-variant">-</span>
+<input class="bg-transparent border-none p-0 text-on-surface font-body-md focus:ring-0" type="date"/>
+</div>
+</div>
+<div class="flex-1 min-w-[200px]">
+<label class="font-label-sm text-label-sm text-on-surface-variant block mb-1">Amount Range (QAR)</label>
+<div class="flex gap-2">
+<input class="w-1/2 bg-surface-container-low border border-outline-variant rounded px-3 py-2 font-body-md text-on-surface" placeholder="Min" type="text"/>
+<input class="w-1/2 bg-surface-container-low border border-outline-variant rounded px-3 py-2 font-body-md text-on-surface" placeholder="Max" type="text"/>
+</div>
+</div>
+<button class="bg-primary hover:brightness-110 text-on-primary font-label-md px-xl h-[40px] rounded flex items-center gap-sm transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                Apply
+            </button>
+</section>
+<!-- Hero Stats Section -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-lg mb-xl">
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-lg relative overflow-hidden group">
+<div class="relative z-10">
+<p class="font-label-md text-label-md text-on-surface-variant mb-2">Tenders Today</p>
+<div class="flex items-baseline gap-sm">
+<span class="font-display-lg text-display-lg text-primary">24</span>
+<span class="font-label-md text-label-md text-success-container text-green-400 flex items-center">
+<span class="material-symbols-outlined text-sm">trending_up</span> +12%
+                        </span>
+</div>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-7xl text-on-surface-variant/5">list_alt</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-lg relative overflow-hidden group">
+<div class="relative z-10">
+<p class="font-label-md text-label-md text-on-surface-variant mb-2">Most Active Entity</p>
+<div class="flex items-baseline gap-sm">
+<span class="font-headline-md text-headline-md text-on-surface">Ashghal</span>
+</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant mt-1">8 New Projects in 48h</p>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-7xl text-on-surface-variant/5">apartment</span>
+</div>
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-lg relative overflow-hidden group border-l-4 border-l-primary">
+<div class="relative z-10">
+<p class="font-label-md text-label-md text-on-surface-variant mb-2">Total Value Awarded (FY24)</p>
+<div class="flex items-baseline gap-sm">
+<span class="font-display-lg text-display-lg text-primary">1.2B</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant">QAR</span>
+</div>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-7xl text-on-surface-variant/5">payments</span>
+</div>
+</section>
+<!-- Table and Sidebar Panel Layout -->
+<div class="flex gap-lg">
+<!-- Data Table -->
+<div class="flex-1 bg-surface-container border border-outline-variant rounded-xl overflow-hidden min-w-0">
+<div class="px-lg py-md border-b border-outline-variant flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Recent Tenders</h3>
+<div class="flex gap-sm">
+<button class="p-1 text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined">download</span>
+</button>
+<button class="p-1 text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-highest/30">
+<th class="px-md py-4 font-label-md text-label-md text-on-surface-variant border-b border-outline-variant">Tender Number</th>
+<th class="px-md py-4 font-label-md text-label-md text-on-surface-variant border-b border-outline-variant">Title</th>
+<th class="px-md py-4 font-label-md text-label-md text-on-surface-variant border-b border-outline-variant">Entity</th>
+<th class="px-md py-4 font-label-md text-label-md text-on-surface-variant border-b border-outline-variant">Winning Company</th>
+<th class="px-md py-4 font-label-md text-label-md text-on-surface-variant border-b border-outline-variant">Amount (QAR)</th>
+<th class="px-md py-4 font-label-md text-label-md text-on-surface-variant border-b border-outline-variant">Award Date</th>
+<th class="px-md py-4 font-label-md text-label-md text-on-surface-variant border-b border-outline-variant">Method</th>
+</tr>
+</thead>
+<tbody>
+<tr class="hover:bg-surface-container-high transition-colors cursor-pointer group border-b border-outline-variant/50">
+<td class="px-md py-4 font-body-md text-on-surface font-medium">ASH-2024-001</td>
+<td class="px-md py-4 font-body-md text-on-surface">Main Road Maintenance - Area 4</td>
+<td class="px-md py-4 font-body-md text-on-surface-variant">Ashghal</td>
+<td class="px-md py-4">
+<span class="px-2 py-1 bg-primary/10 text-primary border border-primary/20 rounded text-xs font-semibold uppercase">Qatar Construct Co.</span>
+</td>
+<td class="px-md py-4 font-body-md text-primary font-bold">42,500,000</td>
+<td class="px-md py-4 font-body-md text-on-surface-variant">22 May 2024</td>
+<td class="px-md py-4">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container">Public</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors cursor-pointer group border-b border-outline-variant/50 bg-primary/5">
+<td class="px-md py-4 font-body-md text-on-surface font-medium">MOT-TRANS-772</td>
+<td class="px-md py-4 font-body-md text-on-surface">Smart Traffic Mgmt Systems</td>
+<td class="px-md py-4 font-body-md text-on-surface-variant">MoTC</td>
+<td class="px-md py-4">
+<span class="px-2 py-1 bg-primary/10 text-primary border border-primary/20 rounded text-xs font-semibold uppercase">TechInfras Group</span>
+</td>
+<td class="px-md py-4 font-body-md text-primary font-bold">128,000,000</td>
+<td class="px-md py-4 font-body-md text-on-surface-variant">20 May 2024</td>
+<td class="px-md py-4">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container">Direct</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors cursor-pointer group border-b border-outline-variant/50">
+<td class="px-md py-4 font-body-md text-on-surface font-medium">KAH-WATER-004</td>
+<td class="px-md py-4 font-body-md text-on-surface">Pipeline Grid Expansion Ph 2</td>
+<td class="px-md py-4 font-body-md text-on-surface-variant">Kahramaa</td>
+<td class="px-md py-4">
+<span class="px-2 py-1 bg-primary/10 text-primary border border-primary/20 rounded text-xs font-semibold uppercase">Al-Jaber Engineering</span>
+</td>
+<td class="px-md py-4 font-body-md text-primary font-bold">89,250,000</td>
+<td class="px-md py-4 font-body-md text-on-surface-variant">15 May 2024</td>
+<td class="px-md py-4">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container">Public</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors cursor-pointer group border-b border-outline-variant/50">
+<td class="px-md py-4 font-body-md text-on-surface font-medium">MOE-EDU-992</td>
+<td class="px-md py-4 font-body-md text-on-surface">IT Infrastructure for Schools</td>
+<td class="px-md py-4 font-body-md text-on-surface-variant">MoEHE</td>
+<td class="px-md py-4">
+<span class="px-2 py-1 bg-primary/10 text-primary border border-primary/20 rounded text-xs font-semibold uppercase">Ooredoo Qatar</span>
+</td>
+<td class="px-md py-4 font-body-md text-primary font-bold">12,400,000</td>
+<td class="px-md py-4 font-body-md text-on-surface-variant">10 May 2024</td>
+<td class="px-md py-4">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container">Limited</span>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors cursor-pointer group border-b border-outline-variant/50">
+<td class="px-md py-4 font-body-md text-on-surface font-medium">ASH-2024-015</td>
+<td class="px-md py-4 font-body-md text-on-surface">New Drainage Link Project</td>
+<td class="px-md py-4 font-body-md text-on-surface-variant">Ashghal</td>
+<td class="px-md py-4">
+<span class="px-2 py-1 bg-primary/10 text-primary border border-primary/20 rounded text-xs font-semibold uppercase">Urbacon Trading</span>
+</td><td class="px-md py-4 font-body-md text-primary font-bold">255,000,000</td>
+<td class="px-md py-4 font-body-md text-on-surface-variant">08 May 2024</td>
+<td class="px-md py-4">
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container">Public</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-lg py-4 border-t border-outline-variant flex justify-between items-center bg-surface-container-low/50">
+<p class="font-label-sm text-label-sm text-on-surface-variant">Showing 5 of 1,248 tenders</p>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-primary text-primary font-label-md">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:text-on-surface">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:text-on-surface">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Side Panel Placeholder (Competing Companies) -->
+<aside class="w-[320px] bg-surface-container-low border border-outline-variant rounded-xl flex flex-col hidden xl:flex">
+<div class="p-lg border-b border-outline-variant">
+<h4 class="font-title-lg text-title-lg text-primary mb-1">Competitor Analysis</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Analysis for MOT-TRANS-772</p>
+</div>
+<div class="flex-1 p-lg space-y-md">
+<div class="p-md rounded bg-surface-container border border-outline-variant">
+<div class="flex justify-between items-start mb-2">
+<p class="font-label-md text-on-surface">Mannai Corporation</p>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Runner Up</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[92%]"></div>
+</div>
+<p class="font-label-sm text-label-sm mt-2 text-on-surface-variant">Technical Score: 94.2</p>
+</div>
+<div class="p-md rounded bg-surface-container border border-outline-variant">
+<div class="flex justify-between items-start mb-2">
+<p class="font-label-md text-on-surface">GBI Solutions</p>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Bidded</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[85%]"></div>
+</div>
+<p class="font-label-sm text-label-sm mt-2 text-on-surface-variant">Technical Score: 88.5</p>
+</div>
+<div class="p-md rounded bg-surface-container border border-outline-variant">
+<div class="flex justify-between items-start mb-2">
+<p class="font-label-md text-on-surface">Gulf Bridge</p>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Bidded</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[78%]"></div>
+</div>
+<p class="font-label-sm text-label-sm mt-2 text-on-surface-variant">Technical Score: 82.1</p>
+</div>
+<div class="mt-xl pt-lg border-t border-outline-variant">
+<h5 class="font-label-md text-label-md text-primary uppercase tracking-wider mb-sm">Insight Summary</h5>
+<p class="font-body-md text-body-md text-on-surface-variant italic">
+                            "Winning bid was 12% more cost-effective while exceeding local content requirements by 15%."
+                        </p>
+<button class="mt-md w-full py-2 font-label-md text-label-md text-primary border border-primary/30 rounded hover:bg-primary/5 transition-all">
+                            View Full Comparison
+                        </button>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- Visual Polish: Background Glow -->
+<div class="fixed top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] pointer-events-none -z-10"></div>
+<div class="fixed bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-secondary/5 blur-[120px] pointer-events-none -z-10"></div>
+<script>
+        // Simple micro-interaction for table row selection
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('click', () => {
+                document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('bg-primary/10'));
+                row.classList.add('bg-primary/10');
+            });
+        });
+    </script>
+</body></html>

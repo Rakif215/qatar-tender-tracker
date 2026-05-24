@@ -1,0 +1,125 @@
+[
+  {
+    "tenderId": 650658,
+    "tenderNumber": "2230/2025",
+    "title": "Media Buying",
+    "entity": "Qatar Museums Authority",
+    "procurementMethod": "Direct Agreement",
+    "awardDate": "2026-05-18",
+    "awardedAmount": 1851980,
+    "awardedAmountCurrency": "QAR",
+    "winningCompany": "UNIVERSAL MEDIA",
+    "awardedCompanies": [
+      {
+        "companyName": "UNIVERSAL MEDIA",
+        "commercialRegistrationNumber": "37478 | 54371",
+        "approvedValue": 1851980,
+        "isWinner": true
+      }
+    ],
+    "openedCompanies": []
+  },
+  {
+    "tenderId": 651452,
+    "tenderNumber": "3004/2025",
+    "title": "Project to provide Printers for customs for 4 Years",
+    "entity": "General Authority Customs",
+    "procurementMethod": "Public Tender",
+    "publishedDate": "2025-11-30",
+    "closingDate": "2026-01-14",
+    "technicalOpenDate": "2026-03-09",
+    "awardDate": "2026-05-18",
+    "awardedAmount": 1911840,
+    "awardedAmountCurrency": "QAR",
+    "winningCompany": "Al Abbas Commercial Co.",
+    "awardedCompanies": [
+      {
+        "companyName": "Al Abbas Commercial Co.",
+        "commercialRegistrationNumber": "31300 | 52426",
+        "approvedValue": 1911840,
+        "financialResult": 1452424.83,
+        "isWinner": true
+      }
+    ],
+    "openedCompanies": []
+  },
+  {
+    "tenderId": 656738,
+    "tenderNumber": "491/2026",
+    "title": "Provision of E-Books for Academic Year 2026-2027",
+    "entity": "Qatar University",
+    "procurementMethod": "Limited Tender",
+    "closingDate": "2026-03-04",
+    "technicalOpenDate": "2026-03-04",
+    "awardDate": "2026-05-18",
+    "awardedAmount": 1301067,
+    "awardedAmountCurrency": "QAR",
+    "winningCompany": "Alnmw Alkbyr Trading",
+    "awardedCompanies": [
+      {
+        "companyName": "Alnmw Alkbyr Trading",
+        "commercialRegistrationNumber": "134865 | 296514",
+        "approvedValue": 1301067,
+        "financialResult": 1301067,
+        "isWinner": true
+      }
+    ],
+    "openedCompanies": [
+      {
+        "companyName": "Alnmw Alkbyr Trading",
+        "commercialRegistrationNumber": "134865 | 296514",
+        "proposalAmount": 1301067,
+        "financialResult": 1301067,
+        "isWinner": true
+      }
+    ]
+  },
+  {
+    "tenderId": 657368,
+    "tenderNumber": "1120/2026",
+    "title": "Internal financial and administrative auditing and consultancy services for three years",
+    "entity": "workers support and insurance fund",
+    "procurementMethod": "Public Tender",
+    "publishedDate": "2026-03-10",
+    "closingDate": "2026-03-30",
+    "technicalOpenDate": "2026-03-31",
+    "awardDate": "2026-05-19",
+    "awardedAmount": 972000,
+    "awardedAmountCurrency": "QAR",
+    "winningCompany": "YASSER ABDEL TAWWAB HAIKAL AUDITING AND ACCOUNTING OFFICE",
+    "awardedCompanies": [
+      {
+        "companyName": "YASSER ABDEL TAWWAB HAIKAL AUDITING AND ACCOUNTING OFFICE",
+        "commercialRegistrationNumber": "LCS/14233",
+        "approvedValue": 972000,
+        "financialResult": 972000,
+        "isWinner": true
+      }
+    ],
+    "openedCompanies": [
+      {
+        "companyName": "Protiviti Member Firm Consulting",
+        "commercialRegistrationNumber": "132006 | 171092",
+        "proposalAmount": 1870000,
+        "localValueRatio": 47.11,
+        "notes": "Excluded",
+        "isWinner": false
+      },
+      {
+        "companyName": "YASSER ABDEL TAWWAB HAIKAL AUDITING AND ACCOUNTING OFFICE",
+        "commercialRegistrationNumber": "LCS/14233",
+        "proposalAmount": 972000,
+        "financialResult": 972000,
+        "isWinner": true
+      },
+      {
+        "companyName": "Baker Tilly Advisory",
+        "commercialRegistrationNumber": "30768 | 38586",
+        "proposalAmount": 1500000,
+        "localValueRatio": 29.91,
+        "notes": "Excluded",
+        "isWinner": false
+      }
+    ]
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "actorSpecification": 1,
+  "name": "monaqasat-collector",
+  "title": "Monaqasat Tender Collector",
+  "description": "Collects public tender and award data from Qatar Monaqasat pages where legally and network-accessibly available.",
+  "version": "0.1",
+  "meta": {
+    "templateId": "js-crawlee-cheerio"
+  },
+  "input": "./input_schema.json",
+  "dockerfile": "../Dockerfile"
+}

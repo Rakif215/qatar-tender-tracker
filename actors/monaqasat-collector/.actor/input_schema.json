@@ -1,0 +1,74 @@
+{
+  "title": "Monaqasat collector input",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "startUrls": {
+      "title": "Start URLs",
+      "type": "array",
+      "description": "Optional list of Monaqasat listing URLs to crawl.",
+      "editor": "requestListSources",
+      "prefill": [
+        {
+          "url": "https://monaqasat.mof.gov.qa/TendersOnlineServices/AvailableMinistriesTenders/1"
+        },
+        {
+          "url": "https://monaqasat.mof.gov.qa/TendersOnlineServices/AwardedTenders/1"
+        }
+      ]
+    },
+    "maxRequestsPerCrawl": {
+      "title": "Max requests",
+      "type": "integer",
+      "description": "Safety cap for early test runs.",
+      "default": 200,
+      "minimum": 1
+    },
+    "maxConcurrency": {
+      "title": "Max concurrency",
+      "type": "integer",
+      "description": "Keep this low for the government portal.",
+      "default": 2,
+      "minimum": 1,
+      "maximum": 5
+    },
+    "maxRequestRetries": {
+      "title": "Max request retries",
+      "type": "integer",
+      "description": "Use a low value while testing network reachability.",
+      "default": 1,
+      "minimum": 0,
+      "maximum": 5
+    },
+    "navigationTimeoutSecs": {
+      "title": "Navigation timeout seconds",
+      "type": "integer",
+      "description": "Timeout for each HTTP request.",
+      "default": 30,
+      "minimum": 5,
+      "maximum": 120
+    },
+    "useApifyProxy": {
+      "title": "Use Apify Proxy",
+      "type": "boolean",
+      "description": "Enable Apify Proxy for geography/access tests.",
+      "default": false
+    },
+    "apifyProxyGroups": {
+      "title": "Apify Proxy groups",
+      "type": "array",
+      "description": "Optional Apify Proxy groups, for example RESIDENTIAL if available on the account.",
+      "editor": "stringList",
+      "items": {
+        "type": "string"
+      }
+    },
+    "apifyProxyCountryCode": {
+      "title": "Proxy country code",
+      "type": "string",
+      "description": "Optional ISO country code, for example QA for Qatar or AE for UAE.",
+      "editor": "textfield",
+      "default": ""
+    }
+  }
+}

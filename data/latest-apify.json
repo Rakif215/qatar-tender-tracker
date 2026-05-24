@@ -1,0 +1,343 @@
+[{
+  "tenderId": 650658,
+  "tenderNumber": "2230/2025",
+  "title": "Media Buying",
+  "entity": "Qatar Museums Authority",
+  "entityTenderNumber": null,
+  "procurementMethod": "Direct Agreement",
+  "requestTypes": "Suppliers / Service Providers",
+  "envelopesSystem": "Two Envelopes",
+  "tenderBond": null,
+  "documentValue": null,
+  "currency": "QAR",
+  "publishedDate": null,
+  "closingDate": null,
+  "technicalOpenDate": null,
+  "awardDate": "2026-05-18",
+  "awardedAmount": 1851980,
+  "awardedAmountCurrency": "QAR",
+  "winningCompany": "UNIVERSAL MEDIA",
+  "awardedCompanies": [
+    {
+      "companyName": "UNIVERSAL MEDIA",
+      "commercialRegistrationNumber": "37478 | 54371",
+      "commercialRegistrationNumbers": [
+        "37478",
+        "54371"
+      ],
+      "approvedValue": 1851980,
+      "approvedValueCurrency": "QAR",
+      "financialResult": null,
+      "approvedItems": null,
+      "isWinner": true
+    }
+  ],
+  "openedCompanies": [],
+  "sourceUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderCompaniesDetails/650658",
+  "pageType": "award_report",
+  "tenderDetailUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderDetails/650658",
+  "rawHtmlKey": "aHR0cHM6Ly9tb25hcWFzYXQubW9mLmdvdi5xYS9UZW5kZXJzT25saW5lU2VydmljZXMvVGVuZGVyQ29tcGFuaWVzRGV0YWlscy82NTA2NTg",
+  "fetchedAt": "2026-05-19T09:18:46.330Z"
+},
+{
+  "tenderId": 651452,
+  "tenderNumber": "3004/2025",
+  "title": "Project to provide Printers for customs for 4 Years",
+  "entity": "General Authority Customs",
+  "entityTenderNumber": "2025/3004",
+  "procurementMethod": "Public Tender",
+  "requestTypes": "Suppliers / Service Providers",
+  "envelopesSystem": "Two Envelopes",
+  "tenderBond": 120000,
+  "documentValue": 1200,
+  "currency": "QAR",
+  "publishedDate": "2025-11-30",
+  "closingDate": "2026-01-14",
+  "technicalOpenDate": "2026-03-09",
+  "awardDate": "2026-05-18",
+  "awardedAmount": 1911840,
+  "awardedAmountCurrency": "QAR",
+  "winningCompany": "Al Abbas Commercial Co.",
+  "awardedCompanies": [
+    {
+      "companyName": "Al Abbas Commercial Co.",
+      "commercialRegistrationNumber": "31300 | 52426",
+      "commercialRegistrationNumbers": [
+        "31300",
+        "52426"
+      ],
+      "approvedValue": 1911840,
+      "approvedValueCurrency": "QAR",
+      "financialResult": 1452424.83,
+      "approvedItems": null,
+      "isWinner": true
+    }
+  ],
+  "openedCompanies": [],
+  "sourceUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderCompaniesDetails/651452",
+  "pageType": "award_report",
+  "tenderDetailUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderDetails/651452",
+  "rawHtmlKey": "aHR0cHM6Ly9tb25hcWFzYXQubW9mLmdvdi5xYS9UZW5kZXJzT25saW5lU2VydmljZXMvVGVuZGVyQ29tcGFuaWVzRGV0YWlscy82NTE0NTI",
+  "fetchedAt": "2026-05-19T09:18:49.851Z"
+},
+{
+  "tenderId": 651288,
+  "tenderNumber": "2840/2025",
+  "title": "Removal of AV in galleries 3-5 at NMOQ and airfreigh delivery of material",
+  "entity": "Qatar Museums Authority",
+  "entityTenderNumber": null,
+  "procurementMethod": "Direct Agreement",
+  "requestTypes": "Suppliers / Service Providers",
+  "envelopesSystem": "Two Envelopes",
+  "tenderBond": null,
+  "documentValue": null,
+  "currency": "QAR",
+  "publishedDate": null,
+  "closingDate": null,
+  "technicalOpenDate": null,
+  "awardDate": "2026-05-18",
+  "awardedAmount": 897815,
+  "awardedAmountCurrency": "QAR",
+  "winningCompany": "R N T MACLAREN INDUSTRIES",
+  "awardedCompanies": [
+    {
+      "companyName": "R N T MACLAREN INDUSTRIES",
+      "commercialRegistrationNumber": "176074 | 233378",
+      "commercialRegistrationNumbers": [
+        "176074",
+        "233378"
+      ],
+      "approvedValue": 897815,
+      "approvedValueCurrency": "QAR",
+      "financialResult": null,
+      "approvedItems": null,
+      "isWinner": true
+    }
+  ],
+  "openedCompanies": [],
+  "sourceUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderCompaniesDetails/651288",
+  "pageType": "award_report",
+  "tenderDetailUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderDetails/651288",
+  "rawHtmlKey": "aHR0cHM6Ly9tb25hcWFzYXQubW9mLmdvdi5xYS9UZW5kZXJzT25saW5lU2VydmljZXMvVGVuZGVyQ29tcGFuaWVzRGV0YWlscy82NTEyODg",
+  "fetchedAt": "2026-05-19T09:18:53.405Z"
+},
+{
+  "tenderId": 656738,
+  "tenderNumber": "491/2026",
+  "title": "Provision of E-Books for Academic Year 2026-2027",
+  "entity": "Qatar University",
+  "entityTenderNumber": "05/2026",
+  "procurementMethod": "Limited Tender",
+  "requestTypes": "Suppliers / Service Providers",
+  "envelopesSystem": "One Envelope",
+  "tenderBond": 28000,
+  "documentValue": 500,
+  "currency": "QAR",
+  "publishedDate": null,
+  "closingDate": "2026-03-04",
+  "technicalOpenDate": "2026-03-04",
+  "awardDate": "2026-05-18",
+  "awardedAmount": 1301067,
+  "awardedAmountCurrency": "QAR",
+  "winningCompany": "Alnmw Alkbyr Trading",
+  "awardedCompanies": [
+    {
+      "companyName": "Alnmw Alkbyr Trading",
+      "commercialRegistrationNumber": "134865 | 296514",
+      "commercialRegistrationNumbers": [
+        "134865",
+        "296514"
+      ],
+      "approvedValue": 1301067,
+      "approvedValueCurrency": "QAR",
+      "financialResult": 1301067,
+      "approvedItems": null,
+      "isWinner": true
+    }
+  ],
+  "openedCompanies": [
+    {
+      "companyName": "Alnmw Alkbyr Trading",
+      "commercialRegistrationNumber": "134865 | 296514",
+      "commercialRegistrationNumbers": [
+        "134865",
+        "296514"
+      ],
+      "proposalAmount": 1301067,
+      "proposalCurrency": "QAR",
+      "localValueRatio": null,
+      "financialResult": 1301067,
+      "notes": null,
+      "isWinner": true
+    }
+  ],
+  "sourceUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderCompaniesDetails/656738",
+  "pageType": "award_report",
+  "tenderDetailUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderDetails/656738",
+  "rawHtmlKey": "aHR0cHM6Ly9tb25hcWFzYXQubW9mLmdvdi5xYS9UZW5kZXJzT25saW5lU2VydmljZXMvVGVuZGVyQ29tcGFuaWVzRGV0YWlscy82NTY3Mzg",
+  "fetchedAt": "2026-05-19T09:18:56.897Z"
+},
+{
+  "tenderId": 657193,
+  "tenderNumber": "946/2026",
+  "title": "Renewal of Support and Licensing for F5 Duration of one year and Tow weeks including implementation",
+  "entity": "Ministry of Justice",
+  "entityTenderNumber": null,
+  "procurementMethod": "Public Tender",
+  "requestTypes": "Suppliers / Service Providers",
+  "envelopesSystem": "Two Envelopes",
+  "tenderBond": 17600,
+  "documentValue": 500,
+  "currency": "QAR",
+  "publishedDate": "2026-02-24",
+  "closingDate": "2026-03-26",
+  "technicalOpenDate": "2026-04-29",
+  "awardDate": "2026-05-18",
+  "awardedAmount": 391000,
+  "awardedAmountCurrency": "QAR",
+  "winningCompany": "QATAR DATAMATION SYSTEM",
+  "awardedCompanies": [
+    {
+      "companyName": "QATAR DATAMATION SYSTEM",
+      "commercialRegistrationNumber": "15928 | 2582",
+      "commercialRegistrationNumbers": [
+        "15928",
+        "2582"
+      ],
+      "approvedValue": 391000,
+      "approvedValueCurrency": "QAR",
+      "financialResult": 316319,
+      "approvedItems": null,
+      "isWinner": true
+    }
+  ],
+  "openedCompanies": [],
+  "sourceUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderCompaniesDetails/657193",
+  "pageType": "award_report",
+  "tenderDetailUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderDetails/657193",
+  "rawHtmlKey": "aHR0cHM6Ly9tb25hcWFzYXQubW9mLmdvdi5xYS9UZW5kZXJzT25saW5lU2VydmljZXMvVGVuZGVyQ29tcGFuaWVzRGV0YWlscy82NTcxOTM",
+  "fetchedAt": "2026-05-19T09:19:30.919Z"
+},
+{
+  "tenderId": 647667,
+  "tenderNumber": "6007/2024",
+  "title": "De-installation / conservation/re-installation of multiple public artworks",
+  "entity": "Qatar Museums Authority",
+  "entityTenderNumber": null,
+  "procurementMethod": "Direct Agreement",
+  "requestTypes": "Suppliers / Service Providers",
+  "envelopesSystem": "Two Envelopes",
+  "tenderBond": null,
+  "documentValue": null,
+  "currency": "QAR",
+  "publishedDate": null,
+  "closingDate": null,
+  "technicalOpenDate": null,
+  "awardDate": "2026-05-19",
+  "awardedAmount": 562725,
+  "awardedAmountCurrency": "QAR",
+  "winningCompany": "GULF WAREHOUSING COMPANY",
+  "awardedCompanies": [
+    {
+      "companyName": "GULF WAREHOUSING COMPANY",
+      "commercialRegistrationNumber": "27386 | 46992",
+      "commercialRegistrationNumbers": [
+        "27386",
+        "46992"
+      ],
+      "approvedValue": 562725,
+      "approvedValueCurrency": "QAR",
+      "financialResult": null,
+      "approvedItems": null,
+      "isWinner": true
+    }
+  ],
+  "openedCompanies": [],
+  "sourceUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderCompaniesDetails/647667",
+  "pageType": "award_report",
+  "tenderDetailUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderDetails/647667",
+  "rawHtmlKey": "aHR0cHM6Ly9tb25hcWFzYXQubW9mLmdvdi5xYS9UZW5kZXJzT25saW5lU2VydmljZXMvVGVuZGVyQ29tcGFuaWVzRGV0YWlscy82NDc2Njc",
+  "fetchedAt": "2026-05-19T09:19:46.287Z"
+},
+{
+  "tenderId": 657368,
+  "tenderNumber": "1120/2026",
+  "title": "Internal financial and administrative auditing and consultancy services for three years",
+  "entity": "workers support and insurance fund",
+  "entityTenderNumber": "1120-2026",
+  "procurementMethod": "Public Tender",
+  "requestTypes": "Suppliers / Service Providers",
+  "envelopesSystem": "One Envelope",
+  "tenderBond": 180000,
+  "documentValue": 1800,
+  "currency": "QAR",
+  "publishedDate": "2026-03-10",
+  "closingDate": "2026-03-30",
+  "technicalOpenDate": "2026-03-31",
+  "awardDate": "2026-05-19",
+  "awardedAmount": 972000,
+  "awardedAmountCurrency": "QAR",
+  "winningCompany": "YASSER ABDEL TAWWAB HAIKAL AUDITING AND ACCOUNTING OFFICE",
+  "awardedCompanies": [
+    {
+      "companyName": "YASSER ABDEL TAWWAB HAIKAL AUDITING AND ACCOUNTING OFFICE",
+      "commercialRegistrationNumber": "LCS/14233",
+      "commercialRegistrationNumbers": [
+        "LCS/14233"
+      ],
+      "approvedValue": 972000,
+      "approvedValueCurrency": "QAR",
+      "financialResult": 972000,
+      "approvedItems": null,
+      "isWinner": true
+    }
+  ],
+  "openedCompanies": [
+    {
+      "companyName": "Protiviti Member Firm Consulting",
+      "commercialRegistrationNumber": "132006 | 171092",
+      "commercialRegistrationNumbers": [
+        "132006",
+        "171092"
+      ],
+      "proposalAmount": 1870000,
+      "proposalCurrency": "QAR",
+      "localValueRatio": 47.11,
+      "financialResult": null,
+      "notes": "Excluded",
+      "isWinner": false
+    },
+    {
+      "companyName": "YASSER ABDEL TAWWAB HAIKAL AUDITING AND ACCOUNTING OFFICE",
+      "commercialRegistrationNumber": "LCS/14233",
+      "commercialRegistrationNumbers": [
+        "LCS/14233"
+      ],
+      "proposalAmount": 972000,
+      "proposalCurrency": "QAR",
+      "localValueRatio": null,
+      "financialResult": 972000,
+      "notes": null,
+      "isWinner": true
+    },
+    {
+      "companyName": "Baker Tilly Advisory",
+      "commercialRegistrationNumber": "30768 | 38586",
+      "commercialRegistrationNumbers": [
+        "30768",
+        "38586"
+      ],
+      "proposalAmount": 1500000,
+      "proposalCurrency": "QAR",
+      "localValueRatio": 29.91,
+      "financialResult": null,
+      "notes": "Excluded",
+      "isWinner": false
+    }
+  ],
+  "sourceUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderCompaniesDetails/657368",
+  "pageType": "award_report",
+  "tenderDetailUrl": "https://monaqasat.mof.gov.qa/TendersOnlineServices/TenderDetails/657368",
+  "rawHtmlKey": "aHR0cHM6Ly9tb25hcWFzYXQubW9mLmdvdi5xYS9UZW5kZXJzT25saW5lU2VydmljZXMvVGVuZGVyQ29tcGFuaWVzRGV0YWlscy82NTczNjg",
+  "fetchedAt": "2026-05-19T09:19:50.364Z"
+}]

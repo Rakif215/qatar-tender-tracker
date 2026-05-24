@@ -1,0 +1,8 @@
+node_modules/
+storage/
+.actor/storage/
+npm-debug.log
+.DS_Store
+.env
+.env.*
+
