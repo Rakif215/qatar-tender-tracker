@@ -386,22 +386,30 @@ function App() {
             <table>
               <thead>
                 <tr>
-                  <th style={{ width: 40 }}></th>
-                  <SortTh column="tender_number" current={sortBy} dir={sortDir} onSort={handleSort}>Tender No.</SortTh>
-                  <th>Title</th>
-                  <SortTh column="entity" current={sortBy} dir={sortDir} onSort={handleSort}>Entity</SortTh>
-                  <th>Method</th>
-                  <th>Winner</th>
-                  <SortTh column="awarded_value" current={sortBy} dir={sortDir} onSort={handleSort}>Amount</SortTh>
-                  <SortTh column="award_date" current={sortBy} dir={sortDir} onSort={handleSort}>Award Date</SortTh>
-                  <th style={{ width: 40 }}></th>
+                  <th className="col-expand" style={{ width: 40 }}></th>
+                  <SortTh column="tender_number" current={sortBy} dir={sortDir} onSort={handleSort} className="col-number">Tender No.</SortTh>
+                  <th className="col-title">Title</th>
+                  <SortTh column="entity" current={sortBy} dir={sortDir} onSort={handleSort} className="col-entity">Entity</SortTh>
+                  <th className="col-method">Method</th>
+                  <th className="col-winner">Winner</th>
+                  <SortTh column="awarded_value" current={sortBy} dir={sortDir} onSort={handleSort} className="col-amount">Amount</SortTh>
+                  <SortTh column="award_date" current={sortBy} dir={sortDir} onSort={handleSort} className="col-date">Award Date</SortTh>
+                  <th className="col-link" style={{ width: 40 }}></th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   Array.from({ length: 8 }).map((_, i) => (
                     <tr key={i} className="skeletonRow">
-                      {Array.from({ length: 9 }).map((__, j) => <td key={j}><span className="skeleton" /></td>)}
+                      <td className="col-expand"><span className="skeleton" /></td>
+                      <td className="col-number"><span className="skeleton" /></td>
+                      <td className="col-title"><span className="skeleton" /></td>
+                      <td className="col-entity"><span className="skeleton" /></td>
+                      <td className="col-method"><span className="skeleton" /></td>
+                      <td className="col-winner"><span className="skeleton" /></td>
+                      <td className="col-amount"><span className="skeleton" /></td>
+                      <td className="col-date"><span className="skeleton" /></td>
+                      <td className="col-link"><span className="skeleton" /></td>
                     </tr>
                   ))
                 ) : tenders.length === 0 ? (
@@ -420,17 +428,17 @@ function App() {
                       className={`tenderRow ${expandedId === tender.id ? "expanded" : ""}`}
                       onClick={() => setExpandedId(expandedId === tender.id ? null : tender.id)}
                     >
-                      <td className="expandCell">
+                      <td className="expandCell col-expand">
                         {expandedId === tender.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       </td>
-                      <td className="tenderNo">{tender.tenderNumber || "—"}</td>
-                      <td className="tenderTitle">{tender.title || "Untitled"}</td>
-                      <td className="tenderEntity">{tender.entity || "—"}</td>
-                      <td><span className="methodChip">{tender.procurementMethod || "—"}</span></td>
-                      <td><span className="winnerChip">{tender.winningCompany || "—"}</span></td>
-                      <td className="money">{formatMoney(tender.awardedAmount, tender.awardedAmountCurrency)}</td>
-                      <td className="dateCell">{formatDate(tender.awardDate)}</td>
-                      <td className="linkCell">
+                      <td className="tenderNo col-number" title={tender.tenderNumber || ""}>{tender.tenderNumber || "—"}</td>
+                      <td className="tenderTitle col-title" title={tender.title || ""}>{tender.title || "Untitled"}</td>
+                      <td className="tenderEntity col-entity" title={tender.entity || ""}>{tender.entity || "—"}</td>
+                      <td className="col-method"><span className="methodChip" title={tender.procurementMethod || ""}>{tender.procurementMethod || "—"}</span></td>
+                      <td className="col-winner"><span className="winnerChip" title={tender.winningCompany || ""}>{tender.winningCompany || "—"}</span></td>
+                      <td className="money col-amount">{formatMoney(tender.awardedAmount, tender.awardedAmountCurrency)}</td>
+                      <td className="dateCell col-date">{formatDate(tender.awardDate)}</td>
+                      <td className="linkCell col-link">
                         {tender.tenderDetailUrl && (
                           <a href={tender.tenderDetailUrl} target="_blank" rel="noopener noreferrer"
                             className="sourceLink" onClick={(e) => e.stopPropagation()} title="Open on Monaqasat">
@@ -489,31 +497,72 @@ function BidsRow({ tender }) {
   return (
     <tr className="bidsRow">
       <td></td>
-      <td colSpan="8">
+      <td colSpan="100%">
         <div className="bidsBox">
-          <div className="bidsHeader">
-            <strong>Competing Bids</strong>
-            <span>{companies.length} participant{companies.length !== 1 ? "s" : ""}</span>
+          <div className="tenderDetailGrid">
+            <div className="tenderDetailInfo">
+              <h4 className="detailHeading">Tender Details</h4>
+              <div className="detailField">
+                <span className="detailLabel">Tender Number</span>
+                <span className="detailValue">{tender.tenderNumber || "—"}</span>
+              </div>
+              <div className="detailField">
+                <span className="detailLabel">Title</span>
+                <span className="detailValue titleText">{tender.title || "Untitled"}</span>
+              </div>
+              <div className="detailField">
+                <span className="detailLabel">Issuing Entity</span>
+                <span className="detailValue">{tender.entity || "—"}</span>
+              </div>
+              <div className="detailField">
+                <span className="detailLabel">Method</span>
+                <span className="detailValue"><span className="methodChip">{tender.procurementMethod || "—"}</span></span>
+              </div>
+              <div className="detailField">
+                <span className="detailLabel">Award Date</span>
+                <span className="detailValue">{formatDate(tender.awardDate)}</span>
+              </div>
+              <div className="detailField">
+                <span className="detailLabel">Awarded Value</span>
+                <span className="detailValue money">{formatMoney(tender.awardedAmount, tender.awardedAmountCurrency)}</span>
+              </div>
+              {tender.tenderDetailUrl && (
+                <div style={{ marginTop: "12px" }}>
+                  <a href={tender.tenderDetailUrl} target="_blank" rel="noopener noreferrer" className="btnGhost btnSm" style={{ display: "inline-flex", gap: "6px", alignItems: "center" }}>
+                    <ExternalLink size={13} /> View Original Source
+                  </a>
+                </div>
+              )}
+            </div>
+
+            <div className="tenderDetailBids">
+              <div className="bidsHeader">
+                <strong>Competing Bids</strong>
+                <span>{companies.length} participant{companies.length !== 1 ? "s" : ""}</span>
+              </div>
+              {companies.length > 0 ? (
+                <div style={{ overflowX: "auto" }}>
+                  <table className="bidsTable">
+                    <thead>
+                      <tr><th>Company</th><th>Bid / Approved</th><th>Result</th><th>Reg. Number</th></tr>
+                    </thead>
+                    <tbody>
+                      {companies.map((c) => (
+                        <tr key={`${c.companyName}-${c.source}`} className={c.isWinner ? "winnerRow" : ""}>
+                          <td>{c.isWinner && <span className="winnerTag">Winner</span>}{c.companyName}</td>
+                          <td className="money">{formatMoney(c.proposalAmount ?? c.approvedValue, tender.awardedAmountCurrency)}</td>
+                          <td>{c.isWinner ? "Awarded" : c.notes || "Participant"}</td>
+                          <td className="regNum">{c.commercialRegistrationNumber || "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="noBids">No bid details published for this tender.</p>
+              )}
+            </div>
           </div>
-          {companies.length > 0 ? (
-            <table className="bidsTable">
-              <thead>
-                <tr><th>Company</th><th>Bid / Approved</th><th>Result</th><th>Reg. Number</th></tr>
-              </thead>
-              <tbody>
-                {companies.map((c) => (
-                  <tr key={`${c.companyName}-${c.source}`} className={c.isWinner ? "winnerRow" : ""}>
-                    <td>{c.isWinner && <span className="winnerTag">Winner</span>}{c.companyName}</td>
-                    <td className="money">{formatMoney(c.proposalAmount ?? c.approvedValue, tender.awardedAmountCurrency)}</td>
-                    <td>{c.isWinner ? "Awarded" : c.notes || "Participant"}</td>
-                    <td className="regNum">{c.commercialRegistrationNumber || "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="noBids">No bid details published for this tender.</p>
-          )}
         </div>
       </td>
     </tr>
@@ -532,10 +581,10 @@ function StatCard({ label, value, loading, isCurrency }) {
   );
 }
 
-function SortTh({ column, current, dir, onSort, children }) {
+function SortTh({ column, current, dir, onSort, className = "", children }) {
   const active = current === column;
   return (
-    <th className={`sortable ${active ? "sortActive" : ""}`} onClick={() => onSort(column)}>
+    <th className={`sortable ${active ? "sortActive" : ""} ${className}`} onClick={() => onSort(column)}>
       <span>{children}</span>
       {active ? (dir === "desc" ? <ArrowDown size={14} /> : <ArrowUp size={14} />) : <ArrowUpDown size={13} className="sortIcon" />}
     </th>

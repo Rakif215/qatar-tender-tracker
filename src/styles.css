@@ -507,11 +507,11 @@ input, select { font: inherit; }
   background: var(--bg-surface);
   box-shadow: var(--shadow-md);
 }
-table { width: 100%; border-collapse: collapse; min-width: 920px; }
+table { width: 100%; border-collapse: collapse; }
 thead { position: sticky; top: 0; z-index: 10; }
 
 th {
-  padding: 14px 16px;
+  padding: 10px 12px;
   text-align: left;
   font-size: 11px;
   font-weight: 700;
@@ -535,7 +535,7 @@ th.sortable svg { vertical-align: middle; display: inline; }
 .sortIcon { opacity: 0.35; }
 
 td {
-  padding: 14px 16px;
+  padding: 10px 12px;
   font-size: 13px;
   border-bottom: 1px solid var(--border-subtle);
   vertical-align: middle;
@@ -557,9 +557,98 @@ tr:last-child td { border-bottom: none; }
   white-space: nowrap;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.tenderTitle { min-width: 260px; max-width: 350px; line-height: 1.45; color: var(--text-primary); }
-.tenderEntity { min-width: 160px; color: var(--text-secondary); font-size: 12px; }
+.tenderTitle {
+  max-width: 250px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tenderEntity {
+  max-width: 180px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive Columns */
+@media (max-width: 1200px) {
+  .col-method { display: none !important; }
+}
+@media (max-width: 992px) {
+  .col-date { display: none !important; }
+}
+@media (max-width: 768px) {
+  .col-number { display: none !important; }
+  .col-entity { display: none !important; }
+}
+
+/* ── Tender Detail Grid ────────────────────────────────────────────────────── */
+.tenderDetailGrid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  padding: 20px;
+}
+.tenderDetailInfo {
+  border-right: 1px solid var(--border-subtle);
+  padding-right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.detailHeading {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+.detailField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.detailLabel {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-faint);
+}
+.detailValue {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+.detailValue.titleText {
+  font-weight: 600;
+  color: var(--accent);
+}
+.tenderDetailBids {
+  min-width: 0;
+}
+
+@media (max-width: 992px) {
+  .tenderDetailGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .tenderDetailInfo {
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-right: 0;
+    padding-bottom: 20px;
+  }
+}
 
 .methodChip {
   display: inline-block;
