@@ -359,6 +359,53 @@ app.post("/api/ingest/apify-dataset", async (request, response) => {
   }
 });
 
+// ── Trigger a new Apify actor run ─────────────────────────────────────────────
+app.post("/api/scraper/trigger", async (req, res) => {
+  const apifyToken = process.env.APIFY_TOKEN;
+  const actorId = process.env.APIFY_ACTOR_ID;
+  if (!apifyToken || !actorId) return res.status(500).json({ error: "APIFY_TOKEN or APIFY_ACTOR_ID not set" });
+
+  try {
+    const r = await fetch(`https://api.apify.com/v2/acts/${actorId}/runs?token=${apifyToken}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        useApifyProxy: true,
+        apifyProxyGroups: ["RESIDENTIAL"],
+        apifyProxyCountryCode: "QA",
+        maxConcurrency: 1,
+        maxRequestsPerCrawl: 300,
+        ...(req.body ?? {}),
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) return res.status(r.status).json({ error: data.error?.message ?? "Failed to trigger run" });
+    res.json({ ok: true, runId: data.data?.id, datasetId: data.data?.defaultDatasetId, status: data.data?.status });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Scraper run status ────────────────────────────────────────────────────────
+app.get("/api/scraper/status/:runId", async (req, res) => {
+  const apifyToken = process.env.APIFY_TOKEN;
+  if (!apifyToken) return res.status(500).json({ error: "APIFY_TOKEN not set" });
+
+  try {
+    const r = await fetch(`https://api.apify.com/v2/actor-runs/${req.params.runId}?token=${apifyToken}`);
+    const data = await r.json();
+    res.json({
+      status: data.data?.status,
+      startedAt: data.data?.startedAt,
+      finishedAt: data.data?.finishedAt,
+      datasetId: data.data?.defaultDatasetId,
+      itemCount: data.data?.stats?.outputItemCount ?? 0,
+    });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.listen(port, () => {
   console.log(`API listening on http://localhost:${port}`);
   console.log(`  Apify webhook: POST http://localhost:${port}/api/webhooks/apify`);
