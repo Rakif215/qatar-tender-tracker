@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, ChevronRight,
@@ -29,7 +29,9 @@ function App() {
   const [error, setError] = useState("");
   const [stats, setStats] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [scraper, setScraper] = useState({ status: "idle", runId: null, message: "" });
+  const [scraper, setScraper] = useState({ status: "idle", runId: null, message: "", itemCount: 0, startedAt: null });
+
+  const pollRef = useRef(null);
 
   function refreshStats() {
     apiJson("/api/stats").then(setStats).catch(() => {});
@@ -75,6 +77,11 @@ function App() {
     return () => controller.abort();
   }, [queryString]);
 
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, []);
+
   function updateFilter(key, value) { setFilters((f) => ({ ...f, [key]: value })); }
   function applyFilters(e) { e?.preventDefault(); setPage(0); setAppliedFilters(filters); }
   function resetFilters() { setFilters(initialFilters); setAppliedFilters(initialFilters); setPage(0); }
@@ -104,43 +111,109 @@ function App() {
   }
 
   async function triggerScraper() {
-    setScraper({ status: "triggering", runId: null, message: "Starting scraper on Qatar government portal…" });
+    const startedAt = Date.now();
+    setScraper({ status: "triggering", runId: null, message: "Initializing scraper on Qatar government portal…", itemCount: 0, startedAt });
     try {
       const res = await apiJson("/api/scraper/trigger", null, "POST");
       const runId = res.runId;
-      setScraper({ status: "running", runId, message: "Scraper running — collecting tenders from monaqasat.mof.gov.qa…" });
+      setScraper({ status: "running", runId, message: "Scraper launched — discovering tender pages on monaqasat.mof.gov.qa…", itemCount: 0, startedAt });
 
-      // Poll every 6 seconds
-      const poll = setInterval(async () => {
+      // Clear any existing poll
+      if (pollRef.current) clearInterval(pollRef.current);
+
+      let consecutiveZeroPolls = 0;
+      let lastItemCount = 0;
+
+      // Poll every 5 seconds
+      pollRef.current = setInterval(async () => {
         try {
           const s = await apiJson(`/api/scraper/status/${runId}`);
-          const done = ["SUCCEEDED", "FAILED", "ABORTED"].includes(s.status);
+          const done = ["SUCCEEDED", "FAILED", "ABORTED", "TIMED-OUT"].includes(s.status);
+          const itemCount = s.itemCount || 0;
+          const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+
+          if (itemCount === 0) {
+            consecutiveZeroPolls++;
+          } else {
+            consecutiveZeroPolls = 0;
+          }
+
+          if (itemCount > lastItemCount) {
+            lastItemCount = itemCount;
+          }
+
+          // Construct a more informative message based on phase
+          let message;
+          if (done) {
+            if (s.status === "SUCCEEDED") {
+              message = `Scraper finished — collected ${itemCount || lastItemCount} tenders. Importing to database…`;
+            } else {
+              message = `Scraper ended with status: ${s.status}`;
+            }
+          } else if (itemCount > 0) {
+            message = `Collecting tenders… ${itemCount} found so far`;
+          } else if (elapsed < 20) {
+            message = "Starting up scraper and loading the portal…";
+          } else if (elapsed < 60) {
+            message = "Navigating government portal and discovering tender pages…";
+          } else if (elapsed < 120) {
+            message = "Crawling tender listings — this portal can be slow to respond…";
+          } else {
+            message = "Still working — the portal sometimes takes a while to load all pages…";
+          }
+
           setScraper((prev) => ({
             ...prev,
-            message: done
-              ? s.status === "SUCCEEDED"
-                ? `Scraped ${s.itemCount} tenders — importing to database…`
-                : `Scraper ended: ${s.status}`
-              : s.itemCount > 0
-                ? `Running… ${s.itemCount} tenders collected so far`
-                : `Running… discovering tender pages (takes about 30-45 seconds to start collecting)…`,
+            itemCount: itemCount || prev.itemCount,
+            message,
           }));
+
           if (done) {
-            clearInterval(poll);
+            clearInterval(pollRef.current);
+            pollRef.current = null;
+
             if (s.status === "SUCCEEDED" && s.datasetId) {
-              await apiJson("/api/ingest/apify-dataset", null, "POST", { datasetId: s.datasetId });
-              setScraper({ status: "done", runId, message: `✅ ${s.itemCount} tenders imported — dashboard updated!` });
-              setTimeout(() => { refreshStats(); refreshTenders(); }, 1200);
-              setTimeout(() => setScraper({ status: "idle", runId: null, message: "" }), 7000);
+              try {
+                await apiJson("/api/ingest/apify-dataset", null, "POST", { datasetId: s.datasetId });
+                // Wait a bit for ingestion to start processing
+                await sleep(3000);
+                setScraper({
+                  status: "done",
+                  runId,
+                  message: `✅ ${itemCount || lastItemCount} tenders imported successfully — dashboard updated!`,
+                  itemCount: itemCount || lastItemCount,
+                  startedAt,
+                });
+                // Refresh data
+                refreshStats();
+                refreshTenders();
+                // Auto-hide after 8 seconds
+                setTimeout(() => setScraper({ status: "idle", runId: null, message: "", itemCount: 0, startedAt: null }), 8000);
+              } catch (ingestErr) {
+                setScraper({
+                  status: "error",
+                  runId,
+                  message: `Scraper succeeded but ingestion failed: ${ingestErr.message}`,
+                  itemCount: 0,
+                  startedAt: null,
+                });
+                setTimeout(() => setScraper({ status: "idle", runId: null, message: "", itemCount: 0, startedAt: null }), 6000);
+              }
             } else {
-              setTimeout(() => setScraper({ status: "idle", runId: null, message: "" }), 4000);
+              setScraper((prev) => ({
+                ...prev,
+                status: s.status === "SUCCEEDED" ? "done" : "error",
+              }));
+              setTimeout(() => setScraper({ status: "idle", runId: null, message: "", itemCount: 0, startedAt: null }), 5000);
             }
           }
-        } catch (_) {}
-      }, 6000);
+        } catch (_) {
+          // Network blip — just skip this poll cycle
+        }
+      }, 5000);
     } catch (e) {
-      setScraper({ status: "error", runId: null, message: "Failed to start scraper. Check API token." });
-      setTimeout(() => setScraper({ status: "idle", runId: null, message: "" }), 4000);
+      setScraper({ status: "error", runId: null, message: "Failed to start scraper. Check Apify API token.", itemCount: 0, startedAt: null });
+      setTimeout(() => setScraper({ status: "idle", runId: null, message: "", itemCount: 0, startedAt: null }), 5000);
     }
   }
 
@@ -151,7 +224,7 @@ function App() {
   return (
     <div className="app">
 
-      {/* ── Nav ── */}
+      {/* ── Navigation ── */}
       <nav className="nav">
         <div className="navInner">
           <div className="navBrand">
@@ -181,16 +254,32 @@ function App() {
         </div>
       </nav>
 
-      {/* ── Scraper status banner ── */}
+      {/* ── Scraper Status Banner ── */}
       {scraper.message && (
         <div className={`scraperBanner ${scraper.status}`}>
           {scraperBusy && <Loader2 size={14} className="spinning" />}
           {scraper.status === "done" && <span className="bannerCheck">✅</span>}
-          <span>{scraper.message}</span>
+          {scraper.status === "error" && <span className="bannerCheck">⚠️</span>}
+          <div className="scraperBannerContent">
+            <div className="scraperBannerMessage">
+              <span>{scraper.message}</span>
+            </div>
+            {scraperBusy && scraper.startedAt && (
+              <div className="scraperProgressWrap">
+                <div className="scraperProgress">
+                  <div
+                    className="scraperProgressBar"
+                    style={{ width: scraper.itemCount > 0 ? "60%" : `${Math.min(((Date.now() - scraper.startedAt) / 180000) * 40, 40)}%` }}
+                  />
+                </div>
+                <ElapsedTimer startedAt={scraper.startedAt} />
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      {/* ── Hero ── */}
+      {/* ── Hero Section ── */}
       <div className="hero">
         <div className="heroInner">
           <div className="heroText">
@@ -381,6 +470,20 @@ function App() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
+function ElapsedTimer({ startedAt }) {
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startedAt]);
+
+  const mins = Math.floor(elapsed / 60);
+  const secs = elapsed % 60;
+  return <span className="scraperElapsed">{mins}:{secs.toString().padStart(2, "0")} elapsed</span>;
+}
+
 function BidsRow({ tender }) {
   const companies = mergeCompanies(tender.companies ?? []);
   return (
@@ -462,6 +565,8 @@ function apiJson(path, signal, method = "GET", body) {
     return data;
   });
 }
+
+function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
 function mergeCompanies(companies) {
   const map = new Map();
