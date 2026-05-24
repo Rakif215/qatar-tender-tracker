@@ -356,8 +356,12 @@ function validateRecord(record) {
   if (!record || typeof record !== "object") return ["record is not an object"];
   if (!record.tenderId) errors.push("missing tenderId");
   if (!record.tenderNumber) errors.push("missing tenderNumber");
+  if (record.tenderNumber && (record.tenderNumber.includes("Type Subject") || record.tenderNumber.length > 50)) {
+    errors.push("tenderNumber looks like a table header or is invalid");
+  }
   if (!record.title) errors.push("missing title");
   if (!record.entity) errors.push("missing entity");
+
 
   if (record.pageType === "award_report" || record.awardedAmount || record.awardedCompanies?.length) {
     const winners = [

@@ -178,12 +178,19 @@ function parseTenderDetail($, url) {
   const tenderId = getTenderIdFromUrl(url);
   const tables = extractTables($);
   const primary = tables.find((row) => row["Tender number"] && row.Subject) ?? {};
+  
+  const tenderNumber = primary["Tender number"] ?? null;
+  if (tenderNumber && (tenderNumber.includes("Type Subject") || tenderNumber.includes("Tender number") || tenderNumber.length > 50)) {
+    return {};
+  }
+
   const secondary = tables.find((row) => row["Brief Description"]) ?? {};
 
   return {
     tenderId,
-    tenderNumber: primary["Tender number"] ?? null,
+    tenderNumber,
     title: primary.Subject ?? ($("h1, h2, .page-title").first().text().trim() || null),
+
     entity: primary.Ministry ?? null,
     entityTenderNumber: primary["Entity's tender number"] ?? null,
     procurementMethod: primary.Type ?? null,
@@ -205,6 +212,11 @@ function parseTenderDetail($, url) {
 }
 
 function parseTenderCompaniesReport($, url) {
+  const tenderNumber = textById($, "lbl_num");
+  if (tenderNumber && (tenderNumber.includes("Type Subject") || tenderNumber.includes("Tender number") || tenderNumber.length > 50)) {
+    return {};
+  }
+
   const awardedCompanies = getSectionTableRows($, "Awarded companies data").map((row) => ({
     companyName: cleanText(row["Company name"]),
     commercialRegistrationNumber: cleanText(row["Commercial Registration Number"]),
@@ -232,8 +244,9 @@ function parseTenderCompaniesReport($, url) {
 
   return {
     tenderId: getTenderIdFromUrl(url),
-    tenderNumber: textById($, "lbl_num"),
+    tenderNumber,
     title: textById($, "lbl_subject"),
+
     entity: textById($, "lblRequesterEntity"),
     entityTenderNumber: textById($, "lblEntityTenderNumber"),
     procurementMethod: textById($, "lbl_type"),

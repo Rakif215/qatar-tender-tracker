@@ -201,11 +201,10 @@ input, select { font: inherit; }
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   padding: 20px 24px;
-  position: sticky;
-  top: 64px;
   z-index: 90;
 }
 .searchSectionInner { max-width: 1400px; margin: 0 auto; }
+
 
 .searchRow { display: flex; gap: 10px; align-items: stretch; }
 .searchInputWrap {
@@ -386,7 +385,8 @@ input, select { font: inherit; }
   background: var(--bg2);
 }
 table { width: 100%; border-collapse: collapse; min-width: 900px; }
-thead { position: sticky; top: 120px; z-index: 10; }
+thead { position: sticky; top: 64px; z-index: 10; }
+
 th {
   padding: 13px 14px;
   text-align: left;
@@ -623,9 +623,9 @@ tr:last-child td { border-bottom: none; }
 @media (max-width: 900px) {
   .heroInner { flex-direction: column; }
   .statsGrid { width: 100%; min-width: unset; grid-template-columns: repeat(2, 1fr); }
-  .searchSection { top: 64px; }
   .navSub { display: none; }
 }
+
 
 @media (max-width: 640px) {
   .hero { padding: 32px 16px 28px; }
