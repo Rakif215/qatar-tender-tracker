@@ -12,9 +12,24 @@ await Actor.init();
 const input = await Actor.getInput() ?? {};
 const maxRequestsPerCrawl = input.maxRequestsPerCrawl ?? 200;
 const maxRequestRetries = input.maxRequestRetries ?? 1;
+
+const startPage = input.startPage ?? 1;
+const onlyAwarded = input.onlyAwarded ?? false;
+const onlyAvailable = input.onlyAvailable ?? false;
+
+let startPaths = [];
+if (onlyAwarded) {
+  startPaths.push(`/TendersOnlineServices/AwardedTenders/${startPage}`);
+} else if (onlyAvailable) {
+  startPaths.push(`/TendersOnlineServices/AvailableMinistriesTenders/${startPage}`);
+} else {
+  startPaths.push(`/TendersOnlineServices/AvailableMinistriesTenders/${startPage}`);
+  startPaths.push(`/TendersOnlineServices/AwardedTenders/${startPage}`);
+}
+
 const startUrls = input.startUrls?.length
   ? input.startUrls.map((item) => item.url ?? item)
-  : START_PATHS.map((path) => `${BASE_URL}${path}`);
+  : startPaths.map((path) => `${BASE_URL}${path}`);
 
 const proxyConfiguration = input.useApifyProxy
   ? await Actor.createProxyConfiguration({
@@ -107,20 +122,25 @@ const crawler = new CheerioCrawler({
         userData: { label: "DETAIL", sourceType: request.userData.sourceType },
       });
     }
-    for (const link of discovered.reportUrls) {
-      await queue.addRequest(
-        {
-          url: new URL(link, BASE_URL).toString(),
-          userData: { label: "REPORT", sourceType: "AWARDED" },
-        },
-        { forefront: true },
-      );
+    if (!onlyAvailable) {
+      for (const link of discovered.reportUrls) {
+        await queue.addRequest(
+          {
+            url: new URL(link, BASE_URL).toString(),
+            userData: { label: "REPORT", sourceType: "AWARDED" },
+          },
+          { forefront: true },
+        );
+      }
     }
     for (const link of discovered.pageUrls) {
       const pageUrl = new URL(link, BASE_URL).toString();
+      const sourceType = sourceTypeFromUrl(pageUrl);
+      if (onlyAwarded && sourceType !== "AWARDED") continue;
+      if (onlyAvailable && sourceType !== "AVAILABLE") continue;
       await queue.addRequest({
         url: pageUrl,
-        userData: { label: "LIST", sourceType: sourceTypeFromUrl(pageUrl) },
+        userData: { label: "LIST", sourceType },
       });
     }
   },

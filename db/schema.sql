@@ -18,6 +18,19 @@ create table if not exists company (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists tender_category (
+  category_id serial primary key,
+  slug text not null unique,
+  name text not null,
+  name_ar text,
+  description text,
+  keywords text[] not null default '{}',
+  color text,
+  icon text,
+  sort_order int not null default 0,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists tender (
   tender_id bigint primary key,
   tender_number text,
@@ -25,6 +38,7 @@ create table if not exists tender (
   entity_id bigint references entity(entity_id),
   procurement_method text,
   category text,
+  category_id int references tender_category(category_id),
   status text,
   estimated_value numeric(18,2),
   currency char(3) not null default 'QAR',
@@ -101,6 +115,7 @@ create index if not exists tender_award_date_idx on tender (award_date);
 create index if not exists tender_awarded_value_idx on tender (awarded_value);
 create index if not exists tender_method_idx on tender (procurement_method);
 create index if not exists tender_entity_idx on tender (entity_id);
+create index if not exists tender_category_idx on tender (category_id);
 create index if not exists bid_winner_idx on bid (tender_id) where is_winner;
 create index if not exists bid_company_tender_idx on bid (company_id, tender_id);
 create index if not exists raw_page_hash_idx on raw_page (source_tender_id, page_type, content_hash);
@@ -133,10 +148,16 @@ select
   t.raw,
   t.fetched_at,
   t.created_at,
-  t.updated_at
+  t.updated_at,
+  t.category_id,
+  cat.slug as category_slug,
+  cat.name as category_name,
+  cat.color as category_color,
+  cat.icon as category_icon
 from tender t
 left join entity e on e.entity_id = t.entity_id
-left join company c on c.company_id = t.awarded_company_id;
+left join company c on c.company_id = t.awarded_company_id
+left join tender_category cat on cat.category_id = t.category_id;
 
 create or replace view tender_companies as
 select

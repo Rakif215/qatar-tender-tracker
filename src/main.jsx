@@ -29,9 +29,7 @@ function App() {
   const [error, setError] = useState("");
   const [stats, setStats] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [scraper, setScraper] = useState({ status: "idle", runId: null, message: "", itemCount: 0, startedAt: null });
-
-  const pollRef = useRef(null);
+  const [statusGroup, setStatusGroup] = useState("awarded");
 
   function refreshStats() {
     apiJson("/api/stats").then(setStats).catch(() => {});
@@ -59,12 +57,13 @@ function App() {
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
     Object.entries(appliedFilters).forEach(([k, v]) => { if (v) params.set(k, v); });
+    params.set("statusGroup", statusGroup);
     params.set("limit", String(PAGE_SIZE));
     params.set("offset", String(page * PAGE_SIZE));
     params.set("sortBy", sortBy);
     params.set("sortDir", sortDir);
     return params.toString();
-  }, [appliedFilters, page, sortBy, sortDir]);
+  }, [appliedFilters, page, sortBy, sortDir, statusGroup]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -77,14 +76,22 @@ function App() {
     return () => controller.abort();
   }, [queryString]);
 
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, []);
-
   function updateFilter(key, value) { setFilters((f) => ({ ...f, [key]: value })); }
   function applyFilters(e) { e?.preventDefault(); setPage(0); setAppliedFilters(filters); }
   function resetFilters() { setFilters(initialFilters); setAppliedFilters(initialFilters); setPage(0); }
+  
+  function handleStatusGroupChange(group) {
+    setStatusGroup(group);
+    if (group === "non-awarded") {
+      setSortBy("closing_date");
+      setSortDir("asc");
+    } else {
+      setSortBy("award_date");
+      setSortDir("desc");
+    }
+    setPage(0);
+  }
+
   function handleSort(col) {
     if (sortBy === col) setSortDir((d) => d === "desc" ? "asc" : "desc");
     else { setSortBy(col); setSortDir("desc"); }
@@ -92,13 +99,15 @@ function App() {
   }
 
   function exportCsv() {
-    const headers = ["Tender No.", "Title", "Entity", "Method", "Award Date", "Awarded Amount (QAR)", "Winning Company"];
+    const isAwarded = statusGroup === "awarded";
+    const dateHeader = isAwarded ? "Award Date" : "Closing Date";
+    const headers = ["Tender No.", "Title", "Entity", "Method", dateHeader, "Awarded Amount (QAR)", "Winning Company"];
     const rows = tenders.map((t) => [
       t.tenderNumber ?? "",
       `"${(t.title ?? "").replace(/"/g, '""')}"`,
       `"${(t.entity ?? "").replace(/"/g, '""')}"`,
       t.procurementMethod ?? "",
-      t.awardDate ? t.awardDate.slice(0, 10) : "",
+      isAwarded ? (t.awardDate ? t.awardDate.slice(0, 10) : "") : (t.closingDate ? t.closingDate.slice(0, 10) : ""),
       t.awardedAmount ?? "",
       `"${(t.winningCompany ?? "").replace(/"/g, '""')}"`,
     ]);
@@ -106,120 +115,12 @@ function App() {
     const blob = new Blob([csv], { type: "text/csv" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `qatar-tenders-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `qatar-tenders-${statusGroup}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
-  }
-
-  async function triggerScraper() {
-    const startedAt = Date.now();
-    setScraper({ status: "triggering", runId: null, message: "Initializing scraper on Qatar government portal…", itemCount: 0, startedAt });
-    try {
-      const res = await apiJson("/api/scraper/trigger", null, "POST");
-      const runId = res.runId;
-      setScraper({ status: "running", runId, message: "Scraper launched — discovering tender pages on monaqasat.mof.gov.qa…", itemCount: 0, startedAt });
-
-      // Clear any existing poll
-      if (pollRef.current) clearInterval(pollRef.current);
-
-      let consecutiveZeroPolls = 0;
-      let lastItemCount = 0;
-
-      // Poll every 5 seconds
-      pollRef.current = setInterval(async () => {
-        try {
-          const s = await apiJson(`/api/scraper/status/${runId}`);
-          const done = ["SUCCEEDED", "FAILED", "ABORTED", "TIMED-OUT"].includes(s.status);
-          const itemCount = s.itemCount || 0;
-          const elapsed = Math.floor((Date.now() - startedAt) / 1000);
-
-          if (itemCount === 0) {
-            consecutiveZeroPolls++;
-          } else {
-            consecutiveZeroPolls = 0;
-          }
-
-          if (itemCount > lastItemCount) {
-            lastItemCount = itemCount;
-          }
-
-          // Construct a more informative message based on phase
-          let message;
-          if (done) {
-            if (s.status === "SUCCEEDED") {
-              message = `Scraper finished — collected ${itemCount || lastItemCount} tenders. Importing to database…`;
-            } else {
-              message = `Scraper ended with status: ${s.status}`;
-            }
-          } else if (itemCount > 0) {
-            message = `Collecting tenders… ${itemCount} found so far`;
-          } else if (elapsed < 20) {
-            message = "Starting up scraper and loading the portal…";
-          } else if (elapsed < 60) {
-            message = "Navigating government portal and discovering tender pages…";
-          } else if (elapsed < 120) {
-            message = "Crawling tender listings — this portal can be slow to respond…";
-          } else {
-            message = "Still working — the portal sometimes takes a while to load all pages…";
-          }
-
-          setScraper((prev) => ({
-            ...prev,
-            itemCount: itemCount || prev.itemCount,
-            message,
-          }));
-
-          if (done) {
-            clearInterval(pollRef.current);
-            pollRef.current = null;
-
-            if (s.status === "SUCCEEDED" && s.datasetId) {
-              try {
-                await apiJson("/api/ingest/apify-dataset", null, "POST", { datasetId: s.datasetId });
-                // Wait a bit for ingestion to start processing
-                await sleep(3000);
-                setScraper({
-                  status: "done",
-                  runId,
-                  message: `✅ ${itemCount || lastItemCount} tenders imported successfully — dashboard updated!`,
-                  itemCount: itemCount || lastItemCount,
-                  startedAt,
-                });
-                // Refresh data
-                refreshStats();
-                refreshTenders();
-                // Auto-hide after 8 seconds
-                setTimeout(() => setScraper({ status: "idle", runId: null, message: "", itemCount: 0, startedAt: null }), 8000);
-              } catch (ingestErr) {
-                setScraper({
-                  status: "error",
-                  runId,
-                  message: `Scraper succeeded but ingestion failed: ${ingestErr.message}`,
-                  itemCount: 0,
-                  startedAt: null,
-                });
-                setTimeout(() => setScraper({ status: "idle", runId: null, message: "", itemCount: 0, startedAt: null }), 6000);
-              }
-            } else {
-              setScraper((prev) => ({
-                ...prev,
-                status: s.status === "SUCCEEDED" ? "done" : "error",
-              }));
-              setTimeout(() => setScraper({ status: "idle", runId: null, message: "", itemCount: 0, startedAt: null }), 5000);
-            }
-          }
-        } catch (_) {
-          // Network blip — just skip this poll cycle
-        }
-      }, 5000);
-    } catch (e) {
-      setScraper({ status: "error", runId: null, message: "Failed to start scraper. Check Apify API token.", itemCount: 0, startedAt: null });
-      setTimeout(() => setScraper({ status: "idle", runId: null, message: "", itemCount: 0, startedAt: null }), 5000);
-    }
   }
 
   const activeFilterCount = Object.values(appliedFilters).filter(Boolean).length;
   const totalPages = Math.ceil(total / PAGE_SIZE);
-  const scraperBusy = scraper.status === "triggering" || scraper.status === "running";
 
   return (
     <div className="app">
@@ -241,43 +142,9 @@ function App() {
                 <span>Updated {formatRelativeTime(stats.lastRun.finishedAt ?? stats.lastRun.startedAt)}</span>
               </div>
             )}
-            <button
-              className={`scraperBtn ${scraperBusy ? "scraperBusy" : ""}`}
-              onClick={triggerScraper}
-              disabled={scraperBusy}
-              title="Pull fresh data from monaqasat.mof.gov.qa"
-            >
-              {scraperBusy ? <Loader2 size={15} className="spinning" /> : <Zap size={15} />}
-              {scraperBusy ? "Scraping…" : "Fetch Live Data"}
-            </button>
           </div>
         </div>
       </nav>
-
-      {/* ── Scraper Status Banner ── */}
-      {scraper.message && (
-        <div className={`scraperBanner ${scraper.status}`}>
-          {scraperBusy && <Loader2 size={14} className="spinning" />}
-          {scraper.status === "done" && <span className="bannerCheck">✅</span>}
-          {scraper.status === "error" && <span className="bannerCheck">⚠️</span>}
-          <div className="scraperBannerContent">
-            <div className="scraperBannerMessage">
-              <span>{scraper.message}</span>
-            </div>
-            {scraperBusy && scraper.startedAt && (
-              <div className="scraperProgressWrap">
-                <div className="scraperProgress">
-                  <div
-                    className="scraperProgressBar"
-                    style={{ width: scraper.itemCount > 0 ? "60%" : `${Math.min(((Date.now() - scraper.startedAt) / 180000) * 40, 40)}%` }}
-                  />
-                </div>
-                <ElapsedTimer startedAt={scraper.startedAt} />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ── Hero Section ── */}
       <div className="hero">
@@ -299,6 +166,28 @@ function App() {
       {/* ── Search + Filters ── */}
       <div className="searchSection">
         <div className="searchSectionInner">
+          <div className="statusTabs">
+            <button
+              type="button"
+              className={`statusTab ${statusGroup === "awarded" ? "active" : ""}`}
+              onClick={() => handleStatusGroupChange("awarded")}
+            >
+              <Zap size={14} style={{ marginRight: 6, display: "inline" }} />
+              Awarded Tenders
+              <span className="tabCount">{stats?.awardedTenders?.toLocaleString() ?? "—"}</span>
+            </button>
+            <button
+              type="button"
+              className={`statusTab ${statusGroup === "non-awarded" ? "active" : ""}`}
+              onClick={() => handleStatusGroupChange("non-awarded")}
+            >
+              Active & Other Tenders
+              <span className="tabCount">
+                {stats ? (stats.totalTenders - stats.awardedTenders).toLocaleString() : "—"}
+              </span>
+            </button>
+          </div>
+
           <form className="searchRow" onSubmit={applyFilters}>
             <div className="searchInputWrap">
               <Search size={18} className="searchIcon" />
@@ -342,10 +231,10 @@ function App() {
                     {methods.map((m) => <option key={m} value={m}>{m}</option>)}
                   </select>
                 </Field>
-                <Field label="Award Date From">
+                <Field label={statusGroup === "awarded" ? "Award Date From" : "Closing Date From"}>
                   <input type="date" value={filters.dateFrom} onChange={(e) => updateFilter("dateFrom", e.target.value)} />
                 </Field>
-                <Field label="Award Date To">
+                <Field label={statusGroup === "awarded" ? "Award Date To" : "Closing Date To"}>
                   <input type="date" value={filters.dateTo} onChange={(e) => updateFilter("dateTo", e.target.value)} />
                 </Field>
                 <Field label="Min Amount (QAR)">
@@ -393,7 +282,9 @@ function App() {
                   <th className="col-method">Method</th>
                   <th className="col-winner">Winner</th>
                   <SortTh column="awarded_value" current={sortBy} dir={sortDir} onSort={handleSort} className="col-amount">Amount</SortTh>
-                  <SortTh column="award_date" current={sortBy} dir={sortDir} onSort={handleSort} className="col-date">Award Date</SortTh>
+                  <SortTh column={statusGroup === "awarded" ? "award_date" : "closing_date"} current={sortBy} dir={sortDir} onSort={handleSort} className="col-date">
+                    {statusGroup === "awarded" ? "Award Date" : "Closing Date"}
+                  </SortTh>
                   <th className="col-link" style={{ width: 40 }}></th>
                 </tr>
               </thead>
@@ -437,7 +328,9 @@ function App() {
                       <td className="col-method"><span className="methodChip" title={tender.procurementMethod || ""}>{tender.procurementMethod || "—"}</span></td>
                       <td className="col-winner"><span className="winnerChip" title={tender.winningCompany || ""}>{tender.winningCompany || "—"}</span></td>
                       <td className="money col-amount">{formatMoney(tender.awardedAmount, tender.awardedAmountCurrency)}</td>
-                      <td className="dateCell col-date">{formatDate(tender.awardDate)}</td>
+                      <td className="dateCell col-date">
+                        {statusGroup === "awarded" ? formatDate(tender.awardDate) : formatDate(tender.closingDate)}
+                      </td>
                       <td className="linkCell col-link">
                         {tender.tenderDetailUrl && (
                           <a href={tender.tenderDetailUrl} target="_blank" rel="noopener noreferrer"
@@ -478,22 +371,9 @@ function App() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function ElapsedTimer({ startedAt }) {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setElapsed(Math.floor((Date.now() - startedAt) / 1000));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [startedAt]);
-
-  const mins = Math.floor(elapsed / 60);
-  const secs = elapsed % 60;
-  return <span className="scraperElapsed">{mins}:{secs.toString().padStart(2, "0")} elapsed</span>;
-}
-
 function BidsRow({ tender }) {
   const companies = mergeCompanies(tender.companies ?? []);
+  const isAwarded = tender.status === "awarded";
   return (
     <tr className="bidsRow">
       <td></td>
@@ -519,13 +399,36 @@ function BidsRow({ tender }) {
                 <span className="detailValue"><span className="methodChip">{tender.procurementMethod || "—"}</span></span>
               </div>
               <div className="detailField">
-                <span className="detailLabel">Award Date</span>
-                <span className="detailValue">{formatDate(tender.awardDate)}</span>
+                <span className="detailLabel">Publication Date</span>
+                <span className="detailValue">{formatDate(tender.publishedDate)}</span>
               </div>
               <div className="detailField">
-                <span className="detailLabel">Awarded Value</span>
-                <span className="detailValue money">{formatMoney(tender.awardedAmount, tender.awardedAmountCurrency)}</span>
+                <span className="detailLabel">First Tracked</span>
+                <span className="detailValue">{formatDate(tender.firstSeen)}</span>
               </div>
+              {isAwarded ? (
+                <>
+                  <div className="detailField">
+                    <span className="detailLabel">Award Date</span>
+                    <span className="detailValue">{formatDate(tender.awardDate)}</span>
+                  </div>
+                  <div className="detailField">
+                    <span className="detailLabel">Awarded Value</span>
+                    <span className="detailValue money">{formatMoney(tender.awardedAmount, tender.awardedAmountCurrency)}</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="detailField">
+                    <span className="detailLabel">Closing Date</span>
+                    <span className="detailValue">{formatDate(tender.closingDate)}</span>
+                  </div>
+                  <div className="detailField">
+                    <span className="detailLabel">Status</span>
+                    <span className="detailValue" style={{ textTransform: "capitalize" }}>{tender.status || "Active / Open"}</span>
+                  </div>
+                </>
+              )}
               {tender.tenderDetailUrl && (
                 <div style={{ marginTop: "12px" }}>
                   <a href={tender.tenderDetailUrl} target="_blank" rel="noopener noreferrer" className="btnGhost btnSm" style={{ display: "inline-flex", gap: "6px", alignItems: "center" }}>

@@ -11,6 +11,7 @@ import cors from "cors";
 import express from "express";
 import { Pool } from "pg";
 import { ingestFromRecords } from "../server/ingest.js";
+import { estimateBidRange, predictLikelyBidders } from "../server/intelligence.js";
 
 const app = express();
 
@@ -75,8 +76,8 @@ app.get("/api/stats", async (_req, res) => {
 // ── Tenders ───────────────────────────────────────────────────────────────────
 app.get("/api/tenders", async (req, res) => {
   const {
-    q, dateFrom, dateTo, method, amountMin, amountMax, entity,
-    limit = "50", offset = "0", sortBy = "award_date", sortDir = "desc",
+    q, dateFrom, dateTo, method, amountMin, amountMax, entity, statusGroup = "awarded",
+    limit = "50", offset = "0", sortBy = "award_date", sortDir = "desc", category,
   } = req.query;
 
   const values = [];
@@ -87,15 +88,39 @@ app.get("/api/tenders", async (req, res) => {
     const i = values.length;
     where.push(`(t.tender_number ilike $${i} or t.title ilike $${i} or e.name ilike $${i} or winner.name ilike $${i} or exists (select 1 from bid bq join company cq on cq.company_id=bq.company_id where bq.tender_id=t.tender_id and cq.name ilike $${i}))`);
   }
-  if (dateFrom) { values.push(dateFrom); where.push(`t.award_date >= $${values.length}`); }
-  if (dateTo)   { values.push(dateTo);   where.push(`t.award_date <= $${values.length}`); }
+
+  if (statusGroup === "awarded") {
+    where.push("t.status = 'awarded'");
+  } else if (statusGroup === "non-awarded") {
+    where.push("(t.status is null or t.status <> 'awarded')");
+  }
+
+  if (dateFrom) {
+    values.push(dateFrom);
+    if (statusGroup === "non-awarded") {
+      where.push(`t.closing_date >= $${values.length}`);
+    } else {
+      where.push(`t.award_date >= $${values.length}`);
+    }
+  }
+  
+  if (dateTo) {
+    values.push(dateTo);
+    if (statusGroup === "non-awarded") {
+      where.push(`t.closing_date <= $${values.length}`);
+    } else {
+      where.push(`t.award_date <= $${values.length}`);
+    }
+  }
+
   if (method)   { values.push(method);   where.push(`t.procurement_method = $${values.length}`); }
   if (entity)   { values.push(entity);   where.push(`e.name = $${values.length}`); }
   if (amountMin){ values.push(Number(amountMin)); where.push(`t.awarded_value >= $${values.length}`); }
   if (amountMax){ values.push(Number(amountMax)); where.push(`t.awarded_value <= $${values.length}`); }
+  if (category) { values.push(category);  where.push(`cat.slug = $${values.length}`); }
 
-  const cols = { award_date:"t.award_date", awarded_value:"t.awarded_value", entity:"e.name", title:"t.title", tender_number:"t.tender_number" };
-  const col = cols[sortBy] ?? "t.award_date";
+  const cols = { award_date:"t.award_date", closing_date:"t.closing_date", awarded_value:"t.awarded_value", entity:"e.name", title:"t.title", tender_number:"t.tender_number" };
+  const col = cols[sortBy] ?? (statusGroup === "non-awarded" ? "t.tender_number" : "t.award_date");
   const dir = sortDir === "asc" ? "asc" : "desc";
   const wh  = where.length ? `where ${where.join(" and ")}` : "";
 
@@ -110,20 +135,23 @@ app.get("/api/tenders", async (req, res) => {
       pool.query(`
         select t.tender_id as id, t.tender_number as "tenderNumber", t.title, t.status,
                e.name as entity, t.procurement_method as "procurementMethod",
-               t.award_date as "awardDate", t.awarded_value::float as "awardedAmount",
+               t.published_date as "publishedDate", t.first_seen as "firstSeen",
+               t.award_date as "awardDate", t.closing_date as "closingDate", t.awarded_value::float as "awardedAmount",
                t.currency as "awardedAmountCurrency", t.source_url as "sourceUrl",
                t.tender_detail_url as "tenderDetailUrl", winner.name as "winningCompany",
+               cat.slug as "categorySlug", cat.name as "categoryName", cat.color as "categoryColor", cat.icon as "categoryIcon",
                coalesce(json_agg(json_build_object('id',b.bid_id,'companyName',c.name,'commercialRegistrationNumber',c.commercial_registration_number,'approvedValue',b.approved_value::float,'proposalAmount',b.bid_value::float,'localValueRatio',b.local_value_ratio::float,'financialResult',b.financial_result::float,'notes',b.notes,'isWinner',b.is_winner,'source',b.source) order by b.is_winner desc, coalesce(b.bid_value,b.approved_value) asc nulls last, c.name asc) filter (where b.bid_id is not null),'[]'::json) as companies
         from tender t
         left join entity e on e.entity_id=t.entity_id
         left join company winner on winner.company_id=t.awarded_company_id
         left join bid b on b.tender_id=t.tender_id
         left join company c on c.company_id=b.company_id
-        ${wh} group by t.tender_id,e.name,winner.name
+        left join tender_category cat on cat.category_id=t.category_id
+        ${wh} group by t.tender_id,e.name,winner.name,cat.slug,cat.name,cat.color,cat.icon
         order by ${col} ${dir} nulls last, t.updated_at desc
         limit $${li} offset $${oi}
       `, values),
-      pool.query(`select count(distinct t.tender_id)::int as total from tender t left join entity e on e.entity_id=t.entity_id left join company winner on winner.company_id=t.awarded_company_id ${wh}`, countVals),
+      pool.query(`select count(distinct t.tender_id)::int as total from tender t left join entity e on e.entity_id=t.entity_id left join company winner on winner.company_id=t.awarded_company_id left join tender_category cat on cat.category_id=t.category_id ${wh}`, countVals),
     ]);
     res.json({ items: rows.rows, total: count.rows[0].total, limit: Number(limit), offset: Number(offset) });
   } catch (e) {
@@ -183,6 +211,299 @@ app.post("/api/webhooks/apify", async (req, res) => {
     console.log(`Webhook ingest complete: ${records.length} records`);
   } catch (e) {
     console.error("Webhook ingest error:", e.message);
+  }
+});
+
+// ─── Category Intelligence API Routes ────────────────────────────────────────
+
+app.get("/api/categories", async (_request, response) => {
+  try {
+    const result = await pool.query(`
+      select 
+        c.category_id as "categoryId",
+        c.slug,
+        c.name,
+        c.color,
+        c.icon,
+        c.sort_order as "sortOrder",
+        count(t.tender_id)::int as "tenderCount",
+        coalesce(sum(t.awarded_value), 0)::float as "totalAwardedValue"
+      from tender_category c
+      left join tender t on t.category_id = c.category_id
+      group by c.category_id
+      order by c.sort_order
+    `);
+    response.json({ items: result.rows });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/categories/:slug/stats", async (request, response) => {
+  const { slug } = request.params;
+  try {
+    const catRes = await pool.query("select * from tender_category where slug = $1", [slug]);
+    if (catRes.rowCount === 0) {
+      return response.status(404).json({ error: `Category '${slug}' not found` });
+    }
+    const category = catRes.rows[0];
+
+    const statsRes = await pool.query(`
+      select
+        count(t.tender_id)::int as "tenderCount",
+        count(case when t.status = 'awarded' then 1 end)::int as "awardedCount",
+        coalesce(sum(t.awarded_value), 0)::float as "totalAwardedValue",
+        coalesce(avg(t.awarded_value), 0)::float as "avgAwardedValue",
+        coalesce(percentile_cont(0.5) within group (order by t.awarded_value), 0)::float as "medianAwardedValue",
+        coalesce(min(t.awarded_value), 0)::float as "minAwardedValue",
+        coalesce(max(t.awarded_value), 0)::float as "maxAwardedValue"
+      from tender t
+      where t.category_id = $1
+    `, [category.category_id]);
+
+    const entityRes = await pool.query(`
+      select
+        e.name as entity,
+        count(t.tender_id)::int as "tenderCount",
+        coalesce(sum(t.awarded_value), 0)::float as "totalAwardedValue"
+      from tender t
+      join entity e on e.entity_id = t.entity_id
+      where t.category_id = $1
+      group by e.name
+      order by "totalAwardedValue" desc, "tenderCount" desc
+      limit 10
+    `, [category.category_id]);
+
+    const bidderRes = await pool.query(`
+      select
+        coalesce(avg(bidders.cnt), 0)::float as "avgBiddersPerTender"
+      from (
+        select count(distinct company_id) as cnt
+        from bid b
+        join tender t on t.tender_id = b.tender_id
+        where t.category_id = $1
+        group by b.tender_id
+      ) bidders
+    `, [category.category_id]);
+
+    response.json({
+      category: {
+        categoryId: category.category_id,
+        slug: category.slug,
+        name: category.name,
+        color: category.color,
+        icon: category.icon,
+        description: category.description,
+      },
+      stats: statsRes.rows[0],
+      entities: entityRes.rows,
+      avgBiddersPerTender: bidderRes.rows[0]?.avgBiddersPerTender ?? 0
+    });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/categories/:slug/competitors", async (request, response) => {
+  const { slug } = request.params;
+  try {
+    const catRes = await pool.query("select category_id from tender_category where slug = $1", [slug]);
+    if (catRes.rowCount === 0) {
+      return response.status(404).json({ error: `Category '${slug}' not found` });
+    }
+    const categoryId = catRes.rows[0].category_id;
+
+    // Fetch total awarded value in this category first
+    const totalAwardedRes = await pool.query(
+      "select coalesce(sum(awarded_value), 0)::float as total from tender where category_id = $1",
+      [categoryId]
+    );
+    const totalAwarded = totalAwardedRes.rows[0].total || 1; // avoid division by zero
+
+    const competitorsRes = await pool.query(`
+      select
+        c.company_id as "companyId",
+        c.name as "companyName",
+        c.commercial_registration_number as "commercialRegistrationNumber",
+        count(b.bid_id)::int as "totalBids",
+        count(case when b.is_winner then 1 end)::int as "wins",
+        case 
+          when count(b.bid_id) > 0 then (count(case when b.is_winner then 1 end)::float / count(b.bid_id)::float * 100)::float 
+          else 0.0 
+        end as "winRate",
+        coalesce(avg(b.bid_value), 0)::float as "avgBid",
+        coalesce(avg(case when b.is_winner then b.approved_value end), 0)::float as "avgWinningBid",
+        coalesce(sum(case when b.is_winner then b.approved_value else 0 end), 0)::float as "totalWonAmount",
+        (coalesce(sum(case when b.is_winner then b.approved_value else 0 end), 0)::float / $2::float * 100)::float as "marketShare",
+        array_to_string(array_agg(distinct e.name), ', ') as "entitiesServed"
+      from bid b
+      join company c on c.company_id = b.company_id
+      join tender t on t.tender_id = b.tender_id
+      left join entity e on e.entity_id = t.entity_id
+      where t.category_id = $1
+      group by c.company_id, c.name, c.commercial_registration_number
+      order by "wins" desc, "totalBids" desc
+    `, [categoryId, totalAwarded]);
+
+    response.json({ items: competitorsRes.rows });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
+
+// ─── Company Intelligence API Routes ─────────────────────────────────────────
+
+app.get("/api/companies", async (request, response) => {
+  const { q = "", limit = "50" } = request.query;
+  try {
+    const queryStr = q.trim() ? `%${q.trim()}%` : "%";
+    const result = await pool.query(`
+      select
+        c.company_id as "companyId",
+        c.name as "companyName",
+        c.commercial_registration_number as "commercialRegistrationNumber",
+        count(b.bid_id)::int as "totalBids",
+        count(case when b.is_winner then 1 end)::int as "wins",
+        case 
+          when count(b.bid_id) > 0 then (count(case when b.is_winner then 1 end)::float / count(b.bid_id)::float * 100)::float 
+          else 0.0 
+        end as "winRate",
+        coalesce(sum(case when b.is_winner then b.approved_value else 0 end), 0)::float as "totalWonAmount"
+      from company c
+      left join bid b on b.company_id = c.company_id
+      where c.name ilike $1
+      group by c.company_id, c.name, c.commercial_registration_number
+      order by "wins" desc, "totalBids" desc
+      limit $2
+    `, [queryStr, Number(limit)]);
+    response.json({ items: result.rows });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/companies/:id", async (request, response) => {
+  const { id } = request.params;
+  try {
+    const companyRes = await pool.query(
+      `select company_id as "companyId", name, commercial_registration_number as "commercialRegistrationNumber", classification
+       from company where company_id = $1`,
+      [id]
+    );
+    if (companyRes.rowCount === 0) {
+      return response.status(404).json({ error: `Company with ID ${id} not found` });
+    }
+    const company = companyRes.rows[0];
+
+    const statsRes = await pool.query(`
+      select
+        count(b.bid_id)::int as "totalBids",
+        count(case when b.is_winner then 1 end)::int as "wins",
+        coalesce(avg(b.bid_value), 0)::float as "avgBid",
+        coalesce(sum(case when b.is_winner then b.approved_value else 0 end), 0)::float as "totalWonAmount",
+        count(distinct t.entity_id)::int as "entitiesServedCount"
+      from bid b
+      join tender t on t.tender_id = b.tender_id
+      where b.company_id = $1
+    `, [id]);
+
+    response.json({
+      company,
+      stats: statsRes.rows[0]
+    });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/companies/:id/bids", async (request, response) => {
+  const { id } = request.params;
+  try {
+    const bidsRes = await pool.query(`
+      select
+        b.bid_id as "bidId",
+        b.bid_value::float as "bidValue",
+        b.approved_value::float as "approvedValue",
+        b.is_winner as "isWinner",
+        b.source,
+        b.notes,
+        b.created_at as "createdAt",
+        t.tender_id as "tenderId",
+        t.tender_number as "tenderNumber",
+        t.title as "tenderTitle",
+        t.award_date as "awardDate",
+        t.closing_date as "closingDate",
+        e.name as entity,
+        cat.slug as "categorySlug",
+        cat.name as "categoryName",
+        cat.color as "categoryColor"
+      from bid b
+      join tender t on t.tender_id = b.tender_id
+      left join entity e on e.entity_id = t.entity_id
+      left join tender_category cat on cat.category_id = t.category_id
+      where b.company_id = $1
+      order by t.award_date desc, t.closing_date desc
+    `, [id]);
+    response.json({ items: bidsRes.rows });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/companies/:id/category-stats", async (request, response) => {
+  const { id } = request.params;
+  try {
+    const statsRes = await pool.query(`
+      select
+        cat.slug,
+        cat.name as "categoryName",
+        cat.color as "categoryColor",
+        cat.icon as "categoryIcon",
+        count(b.bid_id)::int as "totalBids",
+        count(case when b.is_winner then 1 end)::int as "wins",
+        case 
+          when count(b.bid_id) > 0 then (count(case when b.is_winner then 1 end)::float / count(b.bid_id)::float * 100)::float 
+          else 0.0 
+        end as "winRate",
+        coalesce(sum(case when b.is_winner then b.approved_value else 0 end), 0)::float as "totalWonAmount"
+      from bid b
+      join tender t on t.tender_id = b.tender_id
+      join tender_category cat on cat.category_id = t.category_id
+      where b.company_id = $1
+      group by cat.slug, cat.name, cat.color, cat.icon
+      order by "totalBids" desc
+    `, [id]);
+    response.json({ items: statsRes.rows });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
+
+// ─── Predictive Intelligence API Routes ──────────────────────────────────────
+
+app.get("/api/intelligence/bid-estimate", async (request, response) => {
+  const { category, entity } = request.query;
+  if (!category) {
+    return response.status(400).json({ error: "Missing required parameter 'category'" });
+  }
+  try {
+    const estimate = await estimateBidRange(category, entity || null);
+    response.json(estimate);
+  } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
+
+app.get("/api/intelligence/likely-bidders", async (request, response) => {
+  const { category, entity } = request.query;
+  if (!category) {
+    return response.status(400).json({ error: "Missing required parameter 'category'" });
+  }
+  try {
+    const bidders = await predictLikelyBidders(category, entity || null);
+    response.json({ items: bidders });
+  } catch (error) {
+    response.status(500).json({ error: error.message });
   }
 });
 

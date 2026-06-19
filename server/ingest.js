@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import { pool, withClient } from "./db.js";
+import { categorize } from "./categorize.js";
 
 // ─── Exported module API ────────────────────────────────────────────────────
 
@@ -65,7 +66,7 @@ async function runIngestion(records, { source, summary }) {
 
     try {
       for (const [index, record] of records.entries()) {
-        const errors = validateRecord(record);
+        const { errors, warnings } = validateRecord(record);
 
         if (errors.length) {
           stats.failed += 1;
@@ -74,8 +75,19 @@ async function runIngestion(records, { source, summary }) {
             tenderId: record.tenderId ?? null,
             tenderNumber: record.tenderNumber ?? null,
             errors,
+            warnings,
           });
           continue;
+        }
+
+        if (warnings.length) {
+          stats.validationErrors.push({
+            index,
+            tenderId: record.tenderId ?? null,
+            tenderNumber: record.tenderNumber ?? null,
+            errors: [],
+            warnings,
+          });
         }
 
         const result = await upsertRecord(client, record);
@@ -131,6 +143,10 @@ async function upsertRecord(client, record) {
   const awardedCompanyId = winnerName ? await upsertCompany(client, { companyName: winnerName }) : null;
   const tenderHash = contentHash(record);
 
+  const { categorySlug } = categorize(record.title);
+  const catRes = await client.query("select category_id from tender_category where slug = $1", [categorySlug]);
+  const categoryId = catRes.rows[0]?.category_id ?? null;
+
   const existing = await client.query("select tender_id from tender where tender_id = $1", [record.tenderId]);
   const tender = await client.query(
     `
@@ -141,6 +157,7 @@ async function upsertRecord(client, record) {
         entity_id,
         procurement_method,
         category,
+        category_id,
         status,
         currency,
         published_date,
@@ -158,7 +175,7 @@ async function upsertRecord(client, record) {
         updated_at
       )
       values (
-        $1, $2, $3, $4, $5, $6, $7, coalesce($8, 'QAR'), $9, $10, $11, $12, $13,
+        $1, $2, $3, $4, $5, $6, $20, $7, coalesce($8, 'QAR'), $9, $10, $11, $12, $13,
         $14, $15, $16, $17, now(), $18, $19, now()
       )
       on conflict (tender_id) do update set
@@ -167,6 +184,7 @@ async function upsertRecord(client, record) {
         entity_id = excluded.entity_id,
         procurement_method = excluded.procurement_method,
         category = excluded.category,
+        category_id = excluded.category_id,
         status = excluded.status,
         currency = excluded.currency,
         published_date = excluded.published_date,
@@ -204,6 +222,7 @@ async function upsertRecord(client, record) {
       record.tenderDetailUrl,
       toTimestamp(record.fetchedAt),
       record,
+      categoryId,
     ],
   );
 
@@ -353,7 +372,10 @@ async function upsertRawPage(client, record, hash) {
 
 function validateRecord(record) {
   const errors = [];
-  if (!record || typeof record !== "object") return ["record is not an object"];
+  const warnings = [];
+  if (!record || typeof record !== "object") {
+    return { errors: ["record is not an object"], warnings: [] };
+  }
   if (!record.tenderId) errors.push("missing tenderId");
   if (!record.tenderNumber) errors.push("missing tenderNumber");
   if (record.tenderNumber && (record.tenderNumber.includes("Type Subject") || record.tenderNumber.length > 50)) {
@@ -369,24 +391,26 @@ function validateRecord(record) {
       ...(record.openedCompanies ?? []),
     ].filter((company) => company.isWinner);
 
-    if (!record.winningCompany && !winners.length) errors.push("awarded tender missing winner");
+    if (!record.winningCompany && !winners.length) {
+      warnings.push("awarded tender missing winner");
+    }
     if (record.awardedAmount && winners[0]) {
       const winnerValue = winners[0].approvedValue ?? winners[0].proposalAmount;
       if (winnerValue && Math.abs(Number(record.awardedAmount) - Number(winnerValue)) > 0.01) {
-        errors.push("awardedAmount does not match winning bid value");
+        warnings.push("awardedAmount does not match winning bid value");
       }
     }
   }
 
   if (record.publishedDate && record.closingDate && new Date(record.publishedDate) > new Date(record.closingDate)) {
-    errors.push("publishedDate is after closingDate");
+    warnings.push("publishedDate is after closingDate");
   }
 
   if (record.closingDate && record.awardDate && new Date(record.closingDate) > new Date(record.awardDate)) {
-    errors.push("closingDate is after awardDate");
+    warnings.push("closingDate is after awardDate");
   }
 
-  return errors;
+  return { errors, warnings };
 }
 
 function statusFromRecord(record) {
