@@ -28,7 +28,7 @@ export async function ingestFromRecords(records, meta = {}) {
 
 // ─── CLI entrypoint — only runs when called directly, not when imported ──────
 
-const isMain = process.argv[1]?.endsWith("ingest.js");
+const isMain = process.argv[1]?.endsWith("/ingest.js") || process.argv[1] === "ingest.js" || process.argv[1]?.endsWith("\\ingest.js");
 if (isMain) {
   const inputPath = process.argv[2];
   if (!inputPath) {

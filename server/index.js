@@ -7,6 +7,7 @@ import express from "express";
 import { pool } from "./db.js";
 import { ingestFromFile, ingestFromRecords } from "./ingest.js";
 import { estimateBidRange, predictLikelyBidders } from "./intelligence.js";
+import { analyzeTender } from "./similarity.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -656,6 +657,20 @@ app.get("/api/intelligence/likely-bidders", async (request, response) => {
     const bidders = await predictLikelyBidders(category, entity || null);
     response.json({ items: bidders });
   } catch (error) {
+    response.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/intelligence/analyze-tender", async (request, response) => {
+  const { text, topN } = request.body ?? {};
+  if (!text?.trim()) {
+    return response.status(400).json({ error: "Missing 'text' in request body" });
+  }
+  try {
+    const result = await analyzeTender(text.trim(), topN || 20);
+    response.json(result);
+  } catch (error) {
+    console.error("Analyze tender error:", error);
     response.status(500).json({ error: error.message });
   }
 });
