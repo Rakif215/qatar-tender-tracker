@@ -16,6 +16,10 @@ const maxRequestRetries = input.maxRequestRetries ?? 1;
 const startPage = input.startPage ?? 1;
 const onlyAwarded = input.onlyAwarded ?? false;
 const onlyAvailable = input.onlyAvailable ?? false;
+// Stop following list pages after this page number (newest awards are on page 1).
+const maxListPage = input.maxListPage ?? Infinity;
+// Award reports already hold title, entity, dates, amounts and bidders; detail pages are optional.
+const skipDetails = input.skipDetails ?? false;
 
 let startPaths = [];
 if (onlyAwarded) {
@@ -116,7 +120,7 @@ const crawler = new CheerioCrawler({
     }
 
     const discovered = discoverTenderLinks($);
-    for (const link of discovered.detailUrls) {
+    for (const link of skipDetails ? [] : discovered.detailUrls) {
       await queue.addRequest({
         url: new URL(link, BASE_URL).toString(),
         userData: { label: "DETAIL", sourceType: request.userData.sourceType },
@@ -136,6 +140,8 @@ const crawler = new CheerioCrawler({
     for (const link of discovered.pageUrls) {
       const pageUrl = new URL(link, BASE_URL).toString();
       const sourceType = sourceTypeFromUrl(pageUrl);
+      const pageNo = Number(pageUrl.match(/\/(\d+)(?:\?|$)/)?.[1]);
+      if (pageNo > maxListPage) continue;
       if (onlyAwarded && sourceType !== "AWARDED") continue;
       if (onlyAvailable && sourceType !== "AVAILABLE") continue;
       await queue.addRequest({

@@ -8,3 +8,10 @@ dist/
 .vercel
 __pycache__/
 *.pyc
+exports/
+.env*
+
+# local scrape output (combined copies live in data/*.json)
+data/scrape-*/
+*.log
+.vercel/

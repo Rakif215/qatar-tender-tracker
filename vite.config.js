@@ -3,14 +3,11 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
-  // In development, proxy /api calls to the local Express server
-  // In production (Vercel), /api routes are handled by serverless functions natively
+  // In development, /api/ask goes to the local Ask server (server/ask-server.mjs).
+  // The deployed site is static: the Ask tab then answers from retrieval alone.
   server: {
     proxy: {
-      "/api": {
-        target: "http://localhost:3001",
-        changeOrigin: true,
-      },
+      "/api/ask": { target: "http://127.0.0.1:3011", changeOrigin: true },
     },
   },
 });

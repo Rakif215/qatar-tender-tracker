@@ -1,0 +1,8 @@
+/api/
+/actors/
+/data/
+/db/
+/stitch/
+/exports/
+*.docx
+handoff_migration_guide.md

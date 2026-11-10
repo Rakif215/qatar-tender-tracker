@@ -69,6 +69,19 @@
       "description": "Optional ISO country code, for example QA for Qatar or AE for UAE.",
       "editor": "textfield",
       "default": ""
+    },
+    "maxListPage": {
+      "title": "Last list page",
+      "type": "integer",
+      "description": "Stop following award list pages after this page (page 1 = newest awards, about 20 per page).",
+      "editor": "number",
+      "minimum": 1
+    },
+    "skipDetails": {
+      "title": "Skip detail pages",
+      "type": "boolean",
+      "description": "Award reports already contain title, ministry, dates, amounts and bidders. Skipping detail pages halves the number of requests.",
+      "default": false
     }
   }
 }

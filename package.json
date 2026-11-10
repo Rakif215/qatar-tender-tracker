@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm run api\" \"npm run web\"",
+    "dev": "concurrently -n ask,web \"npm run ask\" \"npm run web\"",
     "web": "vite --host 0.0.0.0",
     "api": "nodemon --watch server --ext js server/index.js",
     "db:migrate": "psql \"$DATABASE_URL\" -f db/schema.sql",
@@ -11,7 +11,11 @@
     "db:import": "node server/ingest.js",
     "pull:latest": "node server/pull-and-ingest.js",
     "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "ask": "node server/ask-server.mjs",
+    "data": "node scripts/build-data.mjs data/crawled-apify.json data/scrape-2026-11-10.json --activities data/activities-2026-11-10.json",
+    "classify": "node scripts/classify-other.mjs",
+    "deploy": "npx vercel build --prod && npx vercel deploy --prebuilt --prod"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
